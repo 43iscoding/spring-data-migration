@@ -1,7 +1,10 @@
 package com.springframework.datamigration.exporter;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.context.ApplicationContext;
 
@@ -12,12 +15,26 @@ public class DataExporter implements Runnable {
 	
 	public void run() {
 	
-	Map<String, TableExporter> tableExporterMap =	 context.getBeansOfType(TableExporter.class);
+	ExecutorService executorServer = Executors.newFixedThreadPool( 2)	;
+		
+	 Map<String, TableExporter> tableExporterMap =	 context.getBeansOfType(TableExporter.class);
+	 Collection<TableExporter>  tableExporterThreads = tableExporterMap.values();
+	 
+	 CountDownLatch exporterCountLatch = new CountDownLatch(tableExporterThreads.size());
+	 
+	 
+	 for(TableExporter tableExporter :tableExporterThreads){
+		 tableExporter.setCountDownLatch(exporterCountLatch);
+		 executorServer.submit(tableExporter);
+	 }
+	 executorServer.shutdown();
 	
-    new Thread( tableExporterMap.values().iterator().next()).start();
-	
-	
-	
+	 try {
+		exporterCountLatch.await();
+	} catch (InterruptedException e) {
+		e.printStackTrace();
+	}
+	 
 	}
 	
 	

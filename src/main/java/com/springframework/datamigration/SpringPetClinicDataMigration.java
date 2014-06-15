@@ -1,5 +1,7 @@
 package com.springframework.datamigration;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -13,15 +15,27 @@ public class SpringPetClinicDataMigration {
 	 
 	 loadApplicationContext();
 	
+	 
+	 
+	 CountDownLatch latch = new CountDownLatch(1);
+	 
+	 
 	 DataExporter dataExporterThread = new DataExporter();
 	 dataExporterThread.setContext(ctx);
 	 new Thread(dataExporterThread).start();
+	 
+	
+	 
+	 
 	
 	}
 	
 	
 	public static void loadApplicationContext(){
 		 ctx = new ClassPathXmlApplicationContext("SpringDatabaseMigration.xml");
+		 
+		 
+		 
 	}
 	
 	

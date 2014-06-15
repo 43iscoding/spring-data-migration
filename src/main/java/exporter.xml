@@ -7,22 +7,77 @@
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     
+    <context:component-scan base-package="com.springframework.datamigration.exporter"></context:component-scan>
+    
     <bean id="tableExporter" abstract="true" class="com.springframework.datamigration.exporter.TableExporter">
         <property name="jdbcTemplate" ref="jdbcTemplate"/>
         <property name="fetchSize" value="${fetchSize}"/>
-        <property name="folderName" value="${migrationfolder}"/>
+        <property name="migrationFolder" value="${migrationfolder}" />
+        <property name="folderName" value=""/>
     	<property name="fileNamePrefix" value="" />	
-		<property name="tableMetaData" value="" />	
     	<property name="query" value="" />
     </bean>
     
     
     <bean id="ownersTableExporter" class="com.springframework.datamigration.exporter.OwnersTableExporter" parent="tableExporter" >
-    	<property name="fileNamePrefix" value="OWNERS" />	
-		<property name="tableMetaData" value="tESTEMEA" />	
-    	<property name="query" value="SELECT COUNT(*) FROM OWNERS" />
+    	<property name="fileNamePrefix" value="OWNERS" />
+    	  <property name="folderName" value="OWNERS"/>	
+		<property name="tableMetaDataQuery" value="SHOW COLUMNS  FROM OWNERS" />	
+    	<property name="recordCountQuery" value="SELECT COUNT(*) FROM OWNERS" />
+    	<property name="query" value="SELECT * FROM OWNERS LIMIT ? , ?" />
     </bean>
     
+    
+    <bean id="petsTableExporter" class="com.springframework.datamigration.exporter.PetsTableExporter" parent="tableExporter" >
+    	<property name="fileNamePrefix" value="PETS" />	
+    	<property name="folderName" value="PETS"/>	
+		<property name="tableMetaDataQuery" value="SHOW COLUMNS  FROM PETS"/>	
+    	<property name="recordCountQuery" value="SELECT COUNT(*) FROM PETS"/>
+    	<property name="query" value="SELECT * FROM PETS  LIMIT ? , ?" />
+    </bean>
+    
+    
+
+    <bean id="specialtiesTableExporter" class="com.springframework.datamigration.exporter.SpecialtiesTableExporter" parent="tableExporter" >
+    	<property name="fileNamePrefix" value="SPECIALTIES" />	
+    	<property name="folderName" value="SPECIALTIES"/>	
+		<property name="tableMetaDataQuery" value="SHOW COLUMNS  FROM SPECIALTIES"/>	
+    	<property name="recordCountQuery" value="SELECT COUNT(*) FROM SPECIALTIES"/>
+    	<property name="query" value="SELECT * FROM SPECIALTIES  LIMIT ? , ?" />
+    </bean>
+    
+        
+    <bean id="typesTableExporter" class="com.springframework.datamigration.exporter.TypesTableExporter" parent="tableExporter" >
+    	<property name="fileNamePrefix" value="TYPES" />	
+    	<property name="folderName" value="TYPES"/>	
+		<property name="tableMetaDataQuery" value="SHOW COLUMNS  FROM TYPES"/>	
+    	<property name="recordCountQuery" value="SELECT COUNT(*) FROM TYPES"/>
+    	<property name="query" value="SELECT * FROM TYPES  LIMIT ? , ?" />
+    </bean>
+    
+     <bean id="vetsSpecialtiesTableExporter" class="com.springframework.datamigration.exporter.VetsSpecialtiesTableExporter" parent="tableExporter" >
+    	<property name="fileNamePrefix" value="VET_SPECIALTIES" />	
+    	<property name="folderName" value="VET_SPECIALTIES"/>	
+		<property name="tableMetaDataQuery" value="SHOW COLUMNS  FROM VET_SPECIALTIES"/>	
+    	<property name="recordCountQuery" value="SELECT COUNT(*) FROM VET_SPECIALTIES"/>
+    	<property name="query" value="SELECT * FROM VET_SPECIALTIES  LIMIT ? , ?" />
+    </bean>
+    
+    <bean id="vetsTableExporter" class="com.springframework.datamigration.exporter.VetsTableExporter" parent="tableExporter" >
+    	<property name="fileNamePrefix" value="VETS" />	
+    	<property name="folderName" value="VETS"/>	
+		<property name="tableMetaDataQuery" value="SHOW COLUMNS  FROM VETS"/>	
+    	<property name="recordCountQuery" value="SELECT COUNT(*) FROM VETS"/>
+    	<property name="query" value="SELECT * FROM VETS  LIMIT ? , ?" />
+    </bean>
+    
+ 	<bean id="visitsTableExporter" class="com.springframework.datamigration.exporter.VisitsTableExporter" parent="tableExporter" >
+    	<property name="fileNamePrefix" value="VISITS" />	
+    	<property name="folderName" value="VISITS"/>	
+		<property name="tableMetaDataQuery" value="SHOW COLUMNS  FROM VISITS"/>	
+    	<property name="recordCountQuery" value="SELECT COUNT(*) FROM VISITS"/>
+    	<property name="query" value="SELECT * FROM VISITS  LIMIT ? , ?" />
+    </bean>
     
     
     
