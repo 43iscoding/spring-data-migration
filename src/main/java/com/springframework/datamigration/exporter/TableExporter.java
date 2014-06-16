@@ -18,7 +18,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
-public abstract class TableExporter implements Runnable {
+import com.springframework.datamigration.utils.Constants;
+
+public class TableExporter implements Runnable {
 
 	
 	private CountDownLatch countDownLatch;
@@ -27,8 +29,6 @@ public abstract class TableExporter implements Runnable {
 	
 	@Value("${fetchSize}")
 	protected int fetchSize;
-
-	
 
 	@Value("${migrationfolder}")
 	protected String migrationFolder;
@@ -44,6 +44,8 @@ public abstract class TableExporter implements Runnable {
 	protected String recordCountQuery;
 
 	private int recordCount;
+
+	private String tableName;
 	
  
 
@@ -101,28 +103,18 @@ public abstract class TableExporter implements Runnable {
 	}
 
 	public String getFolderName() {
-		return folderName;
+		return tableName.toUpperCase();
 	}
 
-	public void setFolderName(String folderName) {
-		this.folderName = folderName;
-	}
 
 	public String getFileNamePrefix() {
-		return fileNamePrefix;
+		return tableName.toUpperCase();
 	}
 
-	public void setFileNamePrefix(String fileNamePrefix) {
-		this.fileNamePrefix = fileNamePrefix;
-	}
+	
 	
 	public String getTableMetaDataQuery() {
-		return tableMetaDataQuery;
-	}
-
-
-	public void setTableMetaDataQuery(String tableMetaDataQuery) {
-		this.tableMetaDataQuery = tableMetaDataQuery;
+		return Constants.getTableMetaDataQuery(this.tableName);
 	}
 
 	public String getTableMetaData() {
@@ -143,21 +135,21 @@ public abstract class TableExporter implements Runnable {
 	}
 	
     public String getRecordCountQuery() {
-		return recordCountQuery;
+		return Constants.getTableRecordCountQuery(this.tableName);
 	}
 
 
-	public void setRecordCountQuery(String recordCountQuery) {
-		this.recordCountQuery = recordCountQuery;
-	}
+
 
 	public int getRecordCount() {
 		return recordCount;
 	}
 	
-	public void setRecordCount(int recordCount) {
+	
+	public void setRecordCount(int recordCount){
 		this.recordCount = recordCount;
 	}
+	
 	
 	public String getMigrationFolder() {
 		return migrationFolder;
@@ -169,13 +161,9 @@ public abstract class TableExporter implements Runnable {
 	}
 	
 	   public String getQuery() {
-			return query;
+			return Constants.getTableRecordSelectQuery(tableName);
 		}
 
-
-		public void setQuery(String query) {
-			this.query = query;
-		}
 
 	
 	
@@ -224,7 +212,7 @@ public abstract class TableExporter implements Runnable {
 	
 	   public String getFileContentToWrite(int lowerLimit){
 		   
-		   return getJdbcTemplate().query( query, new Object[]{lowerLimit, fetchSize}, new ResultSetExtractor<String>() {
+		   return getJdbcTemplate().query(  getQuery(), new Object[]{lowerLimit, fetchSize}, new ResultSetExtractor<String>() {
 				
 				public String extractData(ResultSet rs) throws SQLException,
 						DataAccessException {
@@ -276,6 +264,17 @@ public abstract class TableExporter implements Runnable {
 			public void updateExecutionStatus() {
 				
 			}
+	
 			
+			
+			public String getTableName() {
+				return tableName;
+			}
+
+
+			public void setTableName(String tableName) {
+				this.tableName = tableName;
+			}
+
 	
 }

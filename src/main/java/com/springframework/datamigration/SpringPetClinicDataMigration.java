@@ -22,6 +22,8 @@ public class SpringPetClinicDataMigration {
 	 
 	 DataExporter dataExporterThread = new DataExporter();
 	 dataExporterThread.setContext(ctx);
+	 
+	 
 	 new Thread(dataExporterThread).start();
 	 
 	
