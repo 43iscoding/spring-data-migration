@@ -54,6 +54,49 @@
 	</dependency>
     
 
+	<!--  Including app engine  -->
+	
+	 <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.10</version>
+        <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <version>1.9.0</version>
+        <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+        <groupId>com.google.appengine</groupId>
+        <artifactId>appengine-testing</artifactId>
+        <version>1.9.6</version>
+        <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+        <groupId>com.google.appengine</groupId>
+        <artifactId>appengine-api-stubs</artifactId>
+        <version>1.9.6</version>
+        <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+		<groupId>com.google.appengine</groupId>
+		<artifactId>appengine-api-1.0-sdk</artifactId>
+		<version>1.9.6</version>
+	</dependency>
+    
+    <dependency>
+		<groupId>com.google.appengine</groupId>
+		<artifactId>appengine-remote-api</artifactId>
+		<version>1.9.6</version>
+	</dependency>
+	
+	<!--   -->
     
     
 </dependencies>

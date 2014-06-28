@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -206,7 +204,7 @@ public class TableExporter implements Runnable {
 			}
 		});
 
-		setTableMetaData( fields.toString().replace("[", "").replace("]", ""));
+		setTableMetaData(Constants.getCSV(fields) );
 	}
 	
 	
@@ -226,7 +224,7 @@ public class TableExporter implements Runnable {
 								for(int columnNo=1; columnNo <= rs.getMetaData().getColumnCount(); columnNo++ ){
 									row.add(rs.getString(columnNo));
 								}
-								fileContentsToWrite.append( row.toString().replace("[", "").replace("]","").concat("\n"));
+								fileContentsToWrite.append(Constants.getCSV(row).concat("\n"));
 								
 							}
 					return fileContentsToWrite.toString();

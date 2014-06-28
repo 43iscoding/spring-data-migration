@@ -20,23 +20,25 @@ public class DataExporter implements Runnable {
 
 
 	private ApplicationContext context;
+
+
+	private CountDownLatch countDownLatch;
 	
 	public void run() {
 	
-	ExecutorService executorServer = Executors.newFixedThreadPool( 2)	;
+	ExecutorService executorService = Executors.newFixedThreadPool( 2)	;
 		
-	 Map<String, TableExporter> tableExporterMap =	 context.getBeansOfType(TableExporter.class);
+	// Map<String, TableExporter> tableExporterMap =	 context.getBeansOfType(TableExporter.class);
 
 	 
 	List<String> databaseTables = getDatabaseTableNames(); 
 	 
 	 CountDownLatch exporterCountLatch = new CountDownLatch(databaseTables.size());
-	 
 	 for(String tableName: databaseTables){
 	   TableExporter tableExporterBean =	(TableExporter ) context.getBean("tableExporter");
 	   tableExporterBean.setTableName( tableName.toUpperCase());
 	   tableExporterBean.setCountDownLatch(exporterCountLatch);
-	   executorServer.submit(tableExporterBean);
+	   executorService.submit(tableExporterBean);
 	 }
 	 
 	 
@@ -48,10 +50,11 @@ public class DataExporter implements Runnable {
 	 
 	 
 	 
-	 executorServer.shutdown();
+	 executorService.shutdown();
 	
 	 try {
 		exporterCountLatch.await();
+		countDownLatch.countDown();
 	} catch (InterruptedException e) {
 		e.printStackTrace();
 	}
@@ -83,5 +86,18 @@ public class DataExporter implements Runnable {
 	  });
 	  return tablenames;
 	}
+	
+	
+	public CountDownLatch getCountDownLatch() {
+		return countDownLatch;
+	}
+
+
+	public void setCountDownLatch(CountDownLatch countDownLatch) {
+		this.countDownLatch = countDownLatch;
+	}
+
+	
+	
 
 }
