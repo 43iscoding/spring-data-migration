@@ -13,49 +13,34 @@ public class SpringPetClinicDataMigration {
 	public static ApplicationContext ctx;
 	
 	public static void main (String args[]) {
-	 
-	 loadApplicationContext();
 	
-	 
-	 
-	 CountDownLatch latch1 = new CountDownLatch(1);
-	 
-	 
-	 DataExporter dataExporterThread = new DataExporter();
-	 dataExporterThread.setContext(ctx);
-	 dataExporterThread.setCountDownLatch(latch1);
-	 Thread t1 = new Thread(dataExporterThread);
-	 t1.start();
-
-	 try {
-		latch1.await();
+	try {
 		
-	} catch (InterruptedException e) {
-		
-		e.printStackTrace();
-	}
-	 
-	 
-	 CountDownLatch latch2 = new CountDownLatch(1);
-	 
-	 System.out.println("Now running importer");
-	 DataImporter dataImporterThread = new DataImporter();
-	 dataImporterThread.setContext(ctx);
-	 dataImporterThread.setCountDownLatch(latch2);
-	 Thread t2 = new Thread(dataImporterThread);
-	 t2.start();
-	 
+		 loadApplicationContext();
+		 CountDownLatch latch1 = new CountDownLatch(1);
+		 DataExporter dataExporterThread = new DataExporter();
+		 dataExporterThread.setContext(ctx);
+		 dataExporterThread.setCountDownLatch(latch1);
+		 Thread t1 = new Thread(dataExporterThread);
+		 t1.start();
 	
-	 try {
-			latch2.await();
-			
-		} catch (InterruptedException e) {
-			
-			e.printStackTrace();
-		}
+		 latch1.await();
+		 CountDownLatch latch2 = new CountDownLatch(1);
+		 System.out.println("Now running importer");
+		 DataImporter dataImporterThread = new DataImporter();
+		 dataImporterThread.setContext(ctx);
+		 dataImporterThread.setCountDownLatch(latch2);
+		 Thread t2 = new Thread(dataImporterThread);
+		 t2.start();
+		 latch2.await();
+	 
 		 
-	 
-	 
+		 
+	} catch (InterruptedException e) {
+			e.printStackTrace();
+	} catch (Exception e){
+			e.printStackTrace();
+	}
 	
 	}
 	

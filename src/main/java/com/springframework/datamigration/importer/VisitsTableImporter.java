@@ -9,6 +9,13 @@ import com.google.appengine.api.datastore.Entity;
 
 public class VisitsTableImporter extends TableImporter {
 
+	private static String ENTITY_NAME = "Visit";
+	
+	private static String ENTITY_SEQUENCE = ENTITY_NAME.concat("Sequence");
+	
+	private static String ENTITY_SEQUENCE_ID = ENTITY_NAME.concat(ENTITY_SEQUENCE).concat("Id");
+	
+	
 	@Override
 	public void exportToAppEngineDataStore(List<File> files) {
 		for (File file : files) {
@@ -16,6 +23,7 @@ public class VisitsTableImporter extends TableImporter {
 			List<Entity> entities = retrieveEntities(lines);
 			saveToDataStore(entities);
 		}
+		createSequence(ENTITY_NAME, ENTITY_SEQUENCE, ENTITY_SEQUENCE_ID);
 	}
 
 	@Override
@@ -27,7 +35,7 @@ public class VisitsTableImporter extends TableImporter {
 			getRemoteApiInstaller().install(getRemoteApiOptions());
 			for (int i = 0; i < entityMapList.size(); i++) {
 				Map<String, String> map = entityMapList.get(i);
-				Entity entity = new Entity("Visit");
+				Entity entity = new Entity(ENTITY_NAME);
 				entity.setProperty("id", map.get("id"));
 				entity.setProperty("petId", map.get("pet_id"));
 				entity.setProperty("visitDate", map.get("visit_date"));

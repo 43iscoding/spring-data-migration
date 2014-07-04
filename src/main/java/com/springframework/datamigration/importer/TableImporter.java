@@ -7,9 +7,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +20,9 @@ import org.springframework.beans.factory.annotation.Value;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
 
@@ -114,11 +120,9 @@ public abstract class TableImporter implements  Runnable {
 	
 	
 	public void saveToDataStore(List<Entity> entities) {
-		
-		
 			
 		try {
-			getRemoteApiInstaller().install(getRemoteApiOptions());
+			 getRemoteApiInstaller().install(getRemoteApiOptions());
 			 DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 			 for(Entity entity : entities){
 				 ds.put(entity);
@@ -240,6 +244,30 @@ public abstract class TableImporter implements  Runnable {
 		
 	}
 	
+	
+	public void createSequence(String entityName,String entitySequenceName,String entitySequenceIdName) {
+			
+		try {
+			 getRemoteApiInstaller().install(getRemoteApiOptions());
+			 DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+			 Query query = new Query(entityName);
+			 query.addSort("id", SortDirection.DESCENDING);
+		 	 PreparedQuery preparedQuery = ds.prepare(query);
+		 	 Set<Integer> idSet = new HashSet<Integer>();
+		 	 for(Entity entity : preparedQuery.asIterable()){
+		 		Object idMax = entity.getProperty("id");
+			 		idSet.add(Integer.valueOf((String) idMax));
+			 	 }
+			 	Entity entity = new Entity(entitySequenceName);
+			 	entity.setProperty(entitySequenceIdName, Collections.max(idSet)); 
+			 	ds.put(entity);
+			
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				getRemoteApiInstaller().uninstall();
+			}
+	}
 	
 	
 }

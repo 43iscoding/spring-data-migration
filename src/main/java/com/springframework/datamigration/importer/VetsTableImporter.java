@@ -9,6 +9,13 @@ import com.google.appengine.api.datastore.Entity;
 
 public class VetsTableImporter extends TableImporter {
 
+	private static String ENTITY_NAME = "Vet";
+	
+	private static String ENTITY_SEQUENCE = ENTITY_NAME.concat("Sequence");
+	
+	private static String ENTITY_SEQUENCE_ID = ENTITY_NAME.concat(ENTITY_SEQUENCE).concat("Id");
+	
+	
 	@Override
 	public void exportToAppEngineDataStore(List<File> files) {
 		for (File file : files) {
@@ -16,7 +23,7 @@ public class VetsTableImporter extends TableImporter {
 			List<Entity> entities = retrieveEntities(lines);
 			saveToDataStore(entities);
 		}
-
+		createSequence(ENTITY_NAME, ENTITY_SEQUENCE, ENTITY_SEQUENCE_ID);
 	}
 
 	@Override

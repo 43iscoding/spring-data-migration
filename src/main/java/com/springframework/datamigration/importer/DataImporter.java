@@ -21,10 +21,7 @@ public class DataImporter implements Runnable {
 	private ApplicationContext context;
 	
 	public void run() {
-	
-
-
-		
+			
 		 Map<String, TableImporter> tableImporterMap =	 context.getBeansOfType(TableImporter.class);
 		 CountDownLatch importerCountLatch = new CountDownLatch(tableImporterMap.size());
 		 ExecutorService executorService = Executors.newFixedThreadPool( 1)	;
@@ -33,17 +30,13 @@ public class DataImporter implements Runnable {
 			 tableImporter.setImporterCountLatch(importerCountLatch);
 			 executorService.submit(tableImporter);			 	 
 		 }
-		 
-	
-			 try {
-				importerCountLatch.await();
-				countDownLatch.countDown();
-			} catch (InterruptedException e) {
+		 try {
+			importerCountLatch.await();
+			countDownLatch.countDown();
+		} catch (InterruptedException e) {
 			
 				e.printStackTrace();
-			}
-		 
-		 
+		}
 		 
 	}
 	
