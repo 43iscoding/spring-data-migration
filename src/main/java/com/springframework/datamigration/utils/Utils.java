@@ -14,28 +14,29 @@ public class Utils {
 	}
 
 	private static String TABLE_METADATA_QUERY = "SHOW COLUMNS  FROM %s";
+	
 	private static String RECORD_COUNT_QUERY = "SELECT COUNT(*) FROM %s";
+	
 	private static String QUERY = "SELECT * FROM %s LIMIT ? , ?";
 
 	private static List<String> DATABASE_TYPE_INTEGER = new ArrayList<String>();
-	
+
 	private static List<String> DATABASE_TYPE_VARCHAR = new ArrayList<String>();
-	
+
 	private static List<String> DATABASE_TYPE_DATE = new ArrayList<String>();
-	
+
 	static {
 		DATABASE_TYPE_INTEGER.add("int");
 	}
-	
+
 	static {
 		DATABASE_TYPE_VARCHAR.add("varchar");
 	}
-	
+
 	static {
 		DATABASE_TYPE_DATE.add("date");
 	}
-	
-	
+
 	public static String getTableMetaDataQuery(String tableName) {
 		return String.format(TABLE_METADATA_QUERY, tableName);
 	}
@@ -127,43 +128,41 @@ public class Utils {
 		return sbf.toString();
 	}
 
-	
 	//
-	 public static void main(String args[]){
-	
+	public static void main(String args[]) {
+
 		System.out.println(getMappingType("int(4) unsigned", "2"));
-		System.out.println(getMappingType("varchar(255)", "Hello")); 
-		System.out.println(getMappingType("date", "2010-03-04")); 
-	 }
-	
-	
+		System.out.println(getMappingType("varchar(255)", "Hello"));
+		System.out.println(getMappingType("date", "2010-03-04"));
+	}
+
 	public static Object getMappingType(String databaseType, String value) {
-		
-		for(String dbType: DATABASE_TYPE_INTEGER){
-			if(databaseType.contains(dbType)){
+
+		for (String dbType : DATABASE_TYPE_INTEGER) {
+			if (databaseType.contains(dbType)) {
 				return new Integer(value);
 			}
 		}
-		
-		for(String dbType: DATABASE_TYPE_VARCHAR){
-			if(databaseType.contains(dbType)){
+
+		for (String dbType : DATABASE_TYPE_VARCHAR) {
+			if (databaseType.contains(dbType)) {
 				return new String(value);
 			}
 		}
-		
-		for(String dbType: DATABASE_TYPE_DATE){
-			if(databaseType.contains(dbType)){
+
+		for (String dbType : DATABASE_TYPE_DATE) {
+			if (databaseType.contains(dbType)) {
 				DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 				Date parsedDate = null;
 				try {
-					 parsedDate = df.parse(value);
+					parsedDate = df.parse(value);
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
 				return parsedDate;
 			}
 		}
-		
+
 		return null;
 	}
 

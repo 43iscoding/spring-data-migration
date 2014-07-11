@@ -1,14 +1,13 @@
 package com.springframework.datamigration.importer;
 
 public class EntityField {
-	
 
 	private String databaseColumnName;
-	
+
 	private String databaseColumnType;
-	
+
 	private String databaseColumnValue;
-	
+
 	public EntityField(String databaseColumnName, String databaseColumnType,
 			String databaseColumnValue) {
 		this.databaseColumnName = databaseColumnName;
@@ -27,7 +26,5 @@ public class EntityField {
 	public String getDatabaseColumnValue() {
 		return databaseColumnValue;
 	}
-
-	
 
 }

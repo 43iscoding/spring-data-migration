@@ -31,7 +31,6 @@ public class TableExporter implements Runnable {
 	protected String migrationFolder;
 
 	private String tableColumnNames;
-	
 
 	private String tableColumnDatabaseTypes;
 
@@ -107,7 +106,6 @@ public class TableExporter implements Runnable {
 		this.tableColumnDatabaseTypes = tableColumnDatabaseTypes;
 	}
 
-	
 	public JdbcTemplate getJdbcTemplate() {
 		return jdbcTemplate;
 	}
@@ -167,7 +165,7 @@ public class TableExporter implements Runnable {
 	public void populateTableMetaData() {
 		String jdbcTableMetaDataQuery = getTableMetaDataQuery();
 		final List<String> columnName = new ArrayList<String>();
-        final List<String> columnType = new ArrayList<String>();
+		final List<String> columnType = new ArrayList<String>();
 		getJdbcTemplate().query(jdbcTableMetaDataQuery,
 				new RowMapper<String>() {
 
@@ -195,7 +193,8 @@ public class TableExporter implements Runnable {
 						fileContentsToWrite = new StringBuffer();
 						fileContentsToWrite.append(getTableColumnNames());
 						fileContentsToWrite.append("\n");
-						fileContentsToWrite.append(getTableColumnDatabaseTypes());
+						fileContentsToWrite
+								.append(getTableColumnDatabaseTypes());
 						fileContentsToWrite.append("\n");
 						List<String> row = null;
 						while (rs.next()) {

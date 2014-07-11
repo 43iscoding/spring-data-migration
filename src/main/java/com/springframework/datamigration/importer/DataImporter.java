@@ -16,9 +16,6 @@ public class DataImporter implements Runnable {
 
 	public void run() {
 
-		// Map<String, TableImporter> tableImporterMap =
-		// context.getBeansOfType(TableImporter.class);
-
 		Map<String, String> tableToEntityMap = (Map<String, String>) context
 				.getBean("tableToEntityMapping");
 
@@ -36,14 +33,6 @@ public class DataImporter implements Runnable {
 			executorService.submit(tableImporter);
 		}
 		executorService.shutdown();
-
-		// Collection<TableImporter> tableImporterList =
-		// tableImporterMap.values();
-		//
-		// for(TableImporter tableImporter:tableImporterList ){
-		// tableImporter.setImporterCountLatch(importerCountLatch);
-		// executorService.submit(tableImporter);
-		// }
 
 		try {
 			importerCountLatch.await();
