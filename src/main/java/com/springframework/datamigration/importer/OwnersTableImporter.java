@@ -17,57 +17,58 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.springframework.datamigration.utils.Utils;
 
-public class OwnersTableImporter extends TableImporter {
-
-	private static String ENTITY_NAME = "Owner";
-	
-	private static String ENTITY_SEQUENCE = ENTITY_NAME.concat("Sequence");
-	
-	private static String ENTITY_SEQUENCE_ID = ENTITY_NAME.concat(ENTITY_SEQUENCE).concat("Id");
-	
-	
-	@Override
-	public void exportToAppEngineDataStore(List<File> files) {
-
-		for (File file : files) {
-			List<String> lines = readFile(file);
-			List<Entity> entities = retrieveEntities(lines);
-			saveToDataStore(entities);
-		}
-		
-		createSequence(ENTITY_NAME,ENTITY_SEQUENCE,ENTITY_SEQUENCE_ID);
-
-	}
-
-	
-
-	public void createEntities(List<Entity> entities,
-			List<Map<String, String>> entityMapList) {
-
-		try {
-			getRemoteApiInstaller().install(getRemoteApiOptions());
-
-			for (int i = 0; i < entityMapList.size(); i++) {
-
-				Map<String, String> map = entityMapList.get(i);
-				Entity entity = new Entity(ENTITY_NAME);
-				entity.setProperty("id", map.get("id"));
-				entity.setProperty("firstName", map.get("first_name"));
-				entity.setProperty("lastName", map.get("last_name"));
-				entity.setProperty("address", map.get("address"));
-				entity.setProperty("city", map.get("city"));
-				entity.setProperty("telephone", map.get("telephone"));
-				entities.add(entity);
-
-			}
-
-		} catch (IOException e) {
-
-		} finally {
-			getRemoteApiInstaller().uninstall();
-		}
-
-	}
+public class OwnersTableImporter {
+//
+//	private static String ENTITY_NAME = "Owner";
+//	
+//	private static String ENTITY_SEQUENCE = ENTITY_NAME.concat("Sequence");
+//	
+//	private static String ENTITY_SEQUENCE_ID = ENTITY_SEQUENCE.concat("Id");
+//	
+//	
+//
+//	public void exportToAppEngineDataStore(List<File> files) {
+//
+//		for (File file : files) {
+//			List<String> lines = readFile(file);
+//			List<Entity> entities = retrieveEntities(lines);
+//			saveToDataStore(entities);
+//		}
+//		
+//		createSequence(ENTITY_NAME,Constants.createEntitySequenceName(ENTITY_NAME),Constants.createEntitySequenceId(ENTITY_NAME));
+//
+//	}
+//
+//	
+//
+//	public void createEntities(List<Entity> entities,
+//			List<Map<String, String>> entityMapList) {
+//
+//		try {
+//			getRemoteApiInstaller().install(getRemoteApiOptions());
+//
+//			for (int i = 0; i < entityMapList.size(); i++) {
+//
+//				Map<String, String> map = entityMapList.get(i);
+//				Entity entity = new Entity(ENTITY_NAME);
+//				entity.setProperty("id",Integer.valueOf(map.get("id")));
+//				entity.setProperty("firstName", map.get("first_name"));
+//				entity.setProperty("lastName", map.get("last_name"));
+//				entity.setProperty("address", map.get("address"));
+//				entity.setProperty("city", map.get("city"));
+//				entity.setProperty("telephone", map.get("telephone"));
+//				entities.add(entity);
+//
+//			}
+//
+//		} catch (IOException e) {
+//
+//		} finally {
+//			getRemoteApiInstaller().uninstall();
+//		}
+//
+//	}
 
 }

@@ -25,189 +25,315 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
+import com.springframework.datamigration.utils.Utils;
 
-public abstract class TableImporter implements  Runnable {
-	
-	protected RemoteApiInstaller remoteApiInstaller;	
-	
+public class TableImporter implements Runnable {
+
+	protected RemoteApiInstaller remoteApiInstaller;
+
 	private RemoteApiOptions remoteApiOptions;
 
 	private String folderName;
-	
 
 	@Value("${hostname}")
 	private String hostname;
-	
+
 	@Value("${port}")
 	private int port;
 
 	@Value("${userEmail}")
 	private String userEmail;
-	
+
 	@Value("${password}")
 	private String password;
-	
 
-	private  CountDownLatch importerCountLatch;
-	
-	
-	
+	public String getTableToExport() {
+		return tableToExport;
+	}
+
+	public void setTableToExport(String tableToExport) {
+		this.tableToExport = tableToExport;
+	}
+
+	private String tableToExport;
+
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	private String entityName;
+
+	private CountDownLatch importerCountLatch;
+
 	@Value("${migrationfolder}")
 	protected String migrationFolder;
-	
+
 	public String getMigrationFolder() {
 		return migrationFolder;
 	}
-
 
 	public void setMigrationFolder(String migrationFolder) {
 		this.migrationFolder = migrationFolder;
 	}
 
-
 	public RemoteApiInstaller getRemoteApiInstaller() {
 		return remoteApiInstaller;
 	}
-
 
 	public void setRemoteApiInstaller(RemoteApiInstaller remoteApiInstaller) {
 		this.remoteApiInstaller = remoteApiInstaller;
 	}
 
-
 	public RemoteApiOptions getRemoteApiOptions() {
 		return remoteApiOptions;
 	}
-
 
 	public void setRemoteApiOptions(RemoteApiOptions remoteApiOptions) {
 		this.remoteApiOptions = remoteApiOptions;
 	}
 
-
 	public String getFolderName() {
 		return folderName;
 	}
-
 
 	public void setFolderName(String folderName) {
 		this.folderName = folderName;
 	}
 
-	
 	public void run() {
-	   List<File> files = getFiles();
-	   try {
 
-	
-	   exportToAppEngineDataStore(files);
-	   
-	   importerCountLatch.countDown();
-	   }finally{
-		   
-	   }
-	   
-	}
-	
-	public abstract void exportToAppEngineDataStore(List<File> files);
-
-
-	public void initialization(){
-	
-			remoteApiOptions.server(hostname, port).credentials(userEmail, password);
-			
-	}
-	
-	
-	public void saveToDataStore(List<Entity> entities) {
-			
+		System.out
+				.println("Creating App Engine Datastore Entities for table [ "
+						+ tableToExport + " ] from the CSV files");
+		List<File> files = getFiles();
 		try {
-			 getRemoteApiInstaller().install(getRemoteApiOptions());
-			 DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-			 for(Entity entity : entities){
-				 ds.put(entity);
-			 }
+			exportToAppEngineDataStore(files);
+			importerCountLatch.countDown();
+			System.out
+					.println("Completed Creation of App Engine Datastore Entities for table [ "
+							+ tableToExport + " ] from the CSV files");
+		} finally {
+		}
+
+	}
+
+	public void exportToAppEngineDataStore(List<File> files) {
+		for (File file : files) {
+			List<String> lines = readFile(file);
+			List<Entity> entities = retrieveEntities(lines);
+			saveToDataStore(entities);
+		}
+		createSequence(entityName, Utils.createEntitySequenceName(entityName),
+				Utils.createEntitySequenceId(entityName));
+	}
+
+	public void initialization() {
+		remoteApiOptions.server(hostname, port)
+				.credentials(userEmail, password);
+
+		try {
+			getRemoteApiInstaller().install(getRemoteApiOptions());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	public void cleanup() {
+
+		getRemoteApiInstaller().uninstall();
+
+	}
+
+	public void saveToDataStore(List<Entity> entities) {
+
+		// initialization();
+
+		remoteApiOptions.server(hostname, port)
+				.credentials(userEmail, password);
+
+		try {
+			getRemoteApiInstaller().install(getRemoteApiOptions());
+			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+			for (Entity entity : entities) {
+				ds.put(entity);
+			}
+		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			getRemoteApiInstaller().uninstall();
 		}
 
-			
-			
+		// cleanup();
+
 	}
-	
 
 	public List<Entity> retrieveEntities(List<String> lines) {
+
 		List<Entity> entities = new ArrayList<Entity>();
-		List<Map<String,String>> entityMapList = new ArrayList<Map<String,String>>();
-		if(lines.size()>1){
-			String[] header =  lines.get(0).split(",");
-			for(int i=1;i<lines.size();i++){
-				String[] fields =  lines.get(i).split(",");
-				entityMapList.add(getMap(header,fields )) ;
+
+		// List<Map<String, String>> entityMapList = new ArrayList<Map<String,
+		// String>>();
+		List<EntityUnit> entityMapList = new ArrayList<EntityUnit>();
+		if (lines.size() > 2) {
+			String[] columnNames = lines.get(0).split(",");
+			String[] columnTypes = lines.get(1).split(",");
+
+			for (int i = 2; i < lines.size(); i++) {
+
+				String[] columnValuesInRow = lines.get(i).split(",");
+
+				entityMapList.add(getEntityUnitToPersist(columnNames,
+						columnTypes, columnValuesInRow));
+
+				// entityMapList.add(getMap(columnNames, columnValuesInRow));
+
 			}
-			createEntities(entities,entityMapList);
+			createEntities(entities, entityMapList);
 		}
 		return entities;
 	}
 
-	public abstract void createEntities(List<Entity> entities,	List<Map<String, String>> entityMapList);
-	
-	
-	private Map<String,String> getMap(String[] header, String[] fields) {
+	private EntityUnit getEntityUnitToPersist(String[] columnNames,
+			String[] columnTypes, String[] columnValuesInRow) {
+		EntityUnit entityUnit = new EntityUnit();
+		for (int i = 0; i < columnNames.length; i++) {
+			entityUnit.addFieldToPersist(new EntityField(columnNames[i],
+					columnTypes[i], columnValuesInRow[i]));
+		}
+		return entityUnit;
+	}
+
+	public void createEntities(List<Entity> entities,
+			List<EntityUnit> entityMapList) {
+
+		remoteApiOptions.server(hostname, port)
+				.credentials(userEmail, password);
+
+		try {
+			getRemoteApiInstaller().install(getRemoteApiOptions());
+			for(EntityUnit entityUnit :entityMapList ){
+				Entity entity = new Entity(entityName);
+				List<EntityField> entityFieldList = entityUnit.getEntityFieldsToPersist();
+				for(EntityField field : entityFieldList){
+					entity.setProperty(field.getDatabaseColumnName(), Utils.getMappingType(field.getDatabaseColumnType(), field.getDatabaseColumnValue()));
+				}
+				entities.add(entity);
+			}
+			
+			
+
+			// for (int i = 0; i < entityMapList.size(); i++) {
+			//
+			// Map<String, String> map = entityMapList.get(i);
+			// Entity entity = new Entity(entityName);
+			// Set<String> entityFields = map.keySet();
+			// for (String field : entityFields) {
+			// entity.setProperty(field, map.get(field));
+			// }
+			//
+			// entities.add(entity);
+			//
+			// // entity.setProperty("id",Integer.valueOf(map.get("id")));
+			// // entity.setProperty("firstName", map.get("first_name"));
+			// // entity.setProperty("lastName", map.get("last_name"));
+			// // entity.setProperty("address", map.get("address"));
+			// // entity.setProperty("city", map.get("city"));
+			// // entity.setProperty("telephone", map.get("telephone"));
+			//
+			// //
+			// }
+
+		} catch (Exception exception) {
+
+		} finally {
+			getRemoteApiInstaller().uninstall();
+		}
+
+	}
+
+	// public void createEntities(List<Entity> entities,
+	// List<Map<String, String>> entityMapList) {
+	//
+	//
+	// remoteApiOptions.server(hostname, port).credentials(userEmail, password);
+	//
+	// try {
+	// getRemoteApiInstaller().install(getRemoteApiOptions());
+	//
+	// for (int i = 0; i < entityMapList.size(); i++) {
+	//
+	// Map<String, String> map = entityMapList.get(i);
+	// Entity entity = new Entity(entityName);
+	// Set<String> entityFields = map.keySet();
+	// for (String field : entityFields) {
+	// entity.setProperty(field, map.get(field));
+	// }
+	//
+	// entities.add(entity);
+	//
+	// // entity.setProperty("id",Integer.valueOf(map.get("id")));
+	// // entity.setProperty("firstName", map.get("first_name"));
+	// // entity.setProperty("lastName", map.get("last_name"));
+	// // entity.setProperty("address", map.get("address"));
+	// // entity.setProperty("city", map.get("city"));
+	// // entity.setProperty("telephone", map.get("telephone"));
+	//
+	// //
+	// }
+	//
+	//
+	// } catch(Exception exception){
+	//
+	// } finally {
+	// getRemoteApiInstaller().uninstall();
+	// }
+	//
+	//
+	//
+	// }
+
+	private Map<String, String> getMap(String[] header, String[] fields) {
 		Map<String, String> map = new HashMap<String, String>();
-	   for(int i=0;i<header.length;i++){
-		   map.put(header[i], fields[i]);
-	   }
-		
+		for (int i = 0; i < header.length; i++) {
+			map.put(header[i], fields[i]);
+		}
+
 		return map;
 	}
-	
-	
-   public List<File> getFiles(){
-	   File file = new File(this.migrationFolder+ "\\"+ getFolderName());
-	   return  Arrays.asList(file.listFiles());
-   }
-	
+
+	public List<File> getFiles() {
+		File file = new File(this.migrationFolder + "\\" + getFolderName());
+		return Arrays.asList(file.listFiles());
+	}
+
 	public CountDownLatch getImporterCountLatch() {
 		return importerCountLatch;
 	}
 
-
 	public void setImporterCountLatch(CountDownLatch importerCountLatch) {
 		this.importerCountLatch = importerCountLatch;
 	}
-	
-	
 
 	public String getHostname() {
 		return hostname;
 	}
 
-
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
 	}
-
-
-
 
 	public String getUserEmail() {
 		return userEmail;
 	}
 
-
 	public void setUserEmail(String userEmail) {
 		this.userEmail = userEmail;
 	}
 
-
 	public String getPassword() {
 		return password;
 	}
-
 
 	public void setPassword(String password) {
 		this.password = password;
@@ -217,57 +343,57 @@ public abstract class TableImporter implements  Runnable {
 		return port;
 	}
 
-
 	public void setPort(int port) {
 		this.port = port;
 	}
 
-	
-
-	public List<String> readFile(File file){
+	public List<String> readFile(File file) {
 		List<String> fileAsList = new ArrayList<String>();
 		try {
-			
+
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			String line;
-			while( (line = reader.readLine())!=null){
+			while ((line = reader.readLine()) != null) {
 				fileAsList.add(line);
 			}
 			reader.close();
-	
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return fileAsList;
-		
+
 	}
-	
-	
-	public void createSequence(String entityName,String entitySequenceName,String entitySequenceIdName) {
-			
+
+	public void createSequence(String entityName, String entitySequenceName,
+			String entitySequenceIdName) {
+
+		remoteApiOptions.server(hostname, port)
+				.credentials(userEmail, password);
+
 		try {
-			 getRemoteApiInstaller().install(getRemoteApiOptions());
-			 DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-			 Query query = new Query(entityName);
-			 query.addSort("id", SortDirection.DESCENDING);
-		 	 PreparedQuery preparedQuery = ds.prepare(query);
-		 	 Set<Integer> idSet = new HashSet<Integer>();
-		 	 for(Entity entity : preparedQuery.asIterable()){
-		 		Object idMax = entity.getProperty("id");
-			 		idSet.add(Integer.valueOf((String) idMax));
-			 	 }
-			 	Entity entity = new Entity(entitySequenceName);
-			 	entity.setProperty(entitySequenceIdName, Collections.max(idSet)); 
-			 	ds.put(entity);
-			
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				getRemoteApiInstaller().uninstall();
+			getRemoteApiInstaller().install(getRemoteApiOptions());
+
+			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+			Query query = new Query(entityName);
+			PreparedQuery preparedQuery = ds.prepare(query);
+			Set<Integer> idSet = new HashSet<Integer>();
+			for (Entity entity : preparedQuery.asIterable()) {
+				String idMax = String.valueOf(entity.getProperty("id"));
+				idSet.add(Integer.valueOf(idMax));
 			}
+			Entity entity = new Entity(entitySequenceName);
+			entity.setProperty(entitySequenceIdName, Collections.max(idSet));
+			ds.put(entity);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			getRemoteApiInstaller().uninstall();
+
+		}
+
 	}
-	
-	
+
 }

@@ -20,17 +20,12 @@ public class DataExporter implements Runnable {
 
 
 	private ApplicationContext context;
-
-
+	
 	private CountDownLatch countDownLatch;
 	
 	public void run() {
-	
-	ExecutorService executorService = Executors.newFixedThreadPool( 2)	;
 		
-	// Map<String, TableExporter> tableExporterMap =	 context.getBeansOfType(TableExporter.class);
-
-	 
+	ExecutorService executorService = Executors.newFixedThreadPool( 5)	;
 	List<String> databaseTables = getDatabaseTableNames(); 
 	 
 	 CountDownLatch exporterCountLatch = new CountDownLatch(databaseTables.size());
@@ -40,15 +35,6 @@ public class DataExporter implements Runnable {
 	   tableExporterBean.setCountDownLatch(exporterCountLatch);
 	   executorService.submit(tableExporterBean);
 	 }
-	 
-	 
-	 
-//	 for(TableExporter tableExporter :tableExporterThreads){
-//		 tableExporter.setCountDownLatch(exporterCountLatch);
-//		 executorServer.submit(tableExporter);
-//	 }
-	 
-	 
 	 
 	 executorService.shutdown();
 	
@@ -95,9 +81,6 @@ public class DataExporter implements Runnable {
 
 	public void setCountDownLatch(CountDownLatch countDownLatch) {
 		this.countDownLatch = countDownLatch;
-	}
-
-	
-	
+	}	
 
 }

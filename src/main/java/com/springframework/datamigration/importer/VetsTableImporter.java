@@ -7,45 +7,45 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 
-public class VetsTableImporter extends TableImporter {
+public class VetsTableImporter  {
 
-	private static String ENTITY_NAME = "Vet";
-	
-	private static String ENTITY_SEQUENCE = ENTITY_NAME.concat("Sequence");
-	
-	private static String ENTITY_SEQUENCE_ID = ENTITY_NAME.concat(ENTITY_SEQUENCE).concat("Id");
-	
-	
-	@Override
-	public void exportToAppEngineDataStore(List<File> files) {
-		for (File file : files) {
-			List<String> lines = readFile(file);
-			List<Entity> entities = retrieveEntities(lines);
-			saveToDataStore(entities);
-		}
-		createSequence(ENTITY_NAME, ENTITY_SEQUENCE, ENTITY_SEQUENCE_ID);
-	}
-
-	@Override
-	public void createEntities(List<Entity> entities,
-			List<Map<String, String>> entityMapList) {
-		
-		try {
-			getRemoteApiInstaller().install(getRemoteApiOptions());
-			for (int i = 0; i < entityMapList.size(); i++) {
-				Map<String, String> map = entityMapList.get(i);
-				Entity entity = new Entity("Vet");
-				entity.setProperty("id", map.get("id"));
-				entity.setProperty("firstName", map.get("first_name"));
-				entity.setProperty("lastName", map.get("last_name"));
-				entities.add(entity);
-			}
-
-		} catch (IOException e) {
-
-		} finally {
-			getRemoteApiInstaller().uninstall();
-		}
-	}
+//	private static String ENTITY_NAME = "Vet";
+//	
+//	private static String ENTITY_SEQUENCE = ENTITY_NAME.concat("Sequence");
+//	
+//	private static String ENTITY_SEQUENCE_ID = ENTITY_SEQUENCE.concat("Id");
+//	
+//	
+//	@Override
+//	public void exportToAppEngineDataStore(List<File> files) {
+//		for (File file : files) {
+//			List<String> lines = readFile(file);
+//			List<Entity> entities = retrieveEntities(lines);
+//			saveToDataStore(entities);
+//		}
+//		createSequence(ENTITY_NAME, ENTITY_SEQUENCE, ENTITY_SEQUENCE_ID);
+//	}
+//
+//	@Override
+//	public void createEntities(List<Entity> entities,
+//			List<Map<String, String>> entityMapList) {
+//		
+//		try {
+//			getRemoteApiInstaller().install(getRemoteApiOptions());
+//			for (int i = 0; i < entityMapList.size(); i++) {
+//				Map<String, String> map = entityMapList.get(i);
+//				Entity entity = new Entity("Vet");
+//				entity.setProperty("id",Integer.valueOf(map.get("id")));
+//				entity.setProperty("firstName", map.get("first_name"));
+//				entity.setProperty("lastName", map.get("last_name"));
+//				entities.add(entity);
+//			}
+//
+//		} catch (IOException e) {
+//
+//		} finally {
+//			getRemoteApiInstaller().uninstall();
+//		}
+//	}
 
 }

@@ -8,39 +8,43 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 
      	<context:component-scan base-package="com.springframework.datamigration.importer"></context:component-scan>
      
-        <bean id="tableImporter" class="com.springframework.datamigration.importer.TableImporter" init-method="initialization" abstract="true">
+        <bean id="tableImporter" class="com.springframework.datamigration.importer.TableImporter" scope="prototype">
             <property name="remoteApiInstaller" ref="remoteApiInstaller"/>
             <property name="remoteApiOptions" ref="remoteApiOptions"/>
         </bean>
         
+        <!-- 
         
-        <bean id="ownersTableImporter" class="com.springframework.datamigration.importer.OwnersTableImporter" parent="tableImporter">
+        <bean id="ownersTableImporter" class="com.springframework.datamigration.importer.OwnersTableImporter">
 			<property name="folderName" value="OWNERS"/>
         </bean>
         
-        <bean id="petsTableImporter" class="com.springframework.datamigration.importer.PetsTableImporter" parent="tableImporter">
+        <bean id="petsTableImporter" class="com.springframework.datamigration.importer.PetsTableImporter">
 			<property name="folderName" value="PETS"/>
         </bean>
         
-        <bean id="specialtiesTableImporter" class="com.springframework.datamigration.importer.SpecialtiesTableImporter" parent="tableImporter">
+        <bean id="specialtiesTableImporter" class="com.springframework.datamigration.importer.SpecialtiesTableImporter">
 			<property name="folderName" value="SPECIALTIES"/>
         </bean>
         
-        <bean id="typesTableImporter" class="com.springframework.datamigration.importer.TypesTableImporter" parent="tableImporter">
+        <bean id="typesTableImporter" class="com.springframework.datamigration.importer.TypesTableImporter" >
 			<property name="folderName" value="TYPES"/>
         </bean>
         
-        <bean id="vetSpecialtiesTableImporter" class="com.springframework.datamigration.importer.VetSpecialtiesTableImporter" parent="tableImporter">
+        <bean id="vetSpecialtiesTableImporter" class="com.springframework.datamigration.importer.VetSpecialtiesTableImporter">
 			<property name="folderName" value="VET_SPECIALTIES"/>
         </bean>
        
-        <bean id="vetsTableImporter" class="com.springframework.datamigration.importer.VetsTableImporter" parent="tableImporter">
+        <bean id="vetsTableImporter" class="com.springframework.datamigration.importer.VetsTableImporter" >
 			<property name="folderName" value="VETS"/>
         </bean>
         
-        <bean id="visitsTableImporter" class="com.springframework.datamigration.importer.VisitsTableImporter" parent="tableImporter">
+        <bean id="visitsTableImporter" class="com.springframework.datamigration.importer.VisitsTableImporter">
 			<property name="folderName" value="VISITS"/>
         </bean>
+        
+         -->
+         
         
 		<bean id="remoteApiInstaller" class="com.google.appengine.tools.remoteapi.RemoteApiInstaller">
         </bean>

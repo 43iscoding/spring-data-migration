@@ -11,13 +11,9 @@
     <import resource="classpath:datasource.xml"/>     
     <import resource="classpath:exporter.xml"/>    
     <import resource="classpath:importer.xml"/>    
-    
+     <import resource="classpath:mapping.xml"/> 
 
    <context:property-placeholder location="classpath:SpringDatabaseMigration.properties" system-properties-mode="OVERRIDE"/> 
-    
-   
-   
-   
    
     
 </beans>
