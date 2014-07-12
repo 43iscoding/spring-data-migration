@@ -154,9 +154,7 @@ public class TableImporter implements Runnable {
 		try {
 			getRemoteApiInstaller().install(getRemoteApiOptions());
 			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-			for (Entity entity : entities) {
-				ds.put(entity);
-			}
+			ds.put(entities);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -171,8 +169,6 @@ public class TableImporter implements Runnable {
 
 		List<Entity> entities = new ArrayList<Entity>();
 
-		// List<Map<String, String>> entityMapList = new ArrayList<Map<String,
-		// String>>();
 		List<EntityUnit> entityMapList = new ArrayList<EntityUnit>();
 		if (lines.size() > 2) {
 			String[] columnNames = lines.get(0).split(",");
@@ -184,8 +180,6 @@ public class TableImporter implements Runnable {
 
 				entityMapList.add(getEntityUnitToPersist(columnNames,
 						columnTypes, columnValuesInRow));
-
-				// entityMapList.add(getMap(columnNames, columnValuesInRow));
 
 			}
 			createEntities(entities, entityMapList);
