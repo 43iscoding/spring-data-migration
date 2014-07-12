@@ -22,7 +22,6 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
 import com.springframework.datamigration.utils.Utils;
@@ -220,29 +219,7 @@ public class TableImporter implements Runnable {
 				}
 				entities.add(entity);
 			}
-			
-			
-
-			// for (int i = 0; i < entityMapList.size(); i++) {
-			//
-			// Map<String, String> map = entityMapList.get(i);
-			// Entity entity = new Entity(entityName);
-			// Set<String> entityFields = map.keySet();
-			// for (String field : entityFields) {
-			// entity.setProperty(field, map.get(field));
-			// }
-			//
-			// entities.add(entity);
-			//
-			// // entity.setProperty("id",Integer.valueOf(map.get("id")));
-			// // entity.setProperty("firstName", map.get("first_name"));
-			// // entity.setProperty("lastName", map.get("last_name"));
-			// // entity.setProperty("address", map.get("address"));
-			// // entity.setProperty("city", map.get("city"));
-			// // entity.setProperty("telephone", map.get("telephone"));
-			//
-			// //
-			// }
+		
 
 		} catch (Exception exception) {
 
@@ -252,46 +229,6 @@ public class TableImporter implements Runnable {
 
 	}
 
-	// public void createEntities(List<Entity> entities,
-	// List<Map<String, String>> entityMapList) {
-	//
-	//
-	// remoteApiOptions.server(hostname, port).credentials(userEmail, password);
-	//
-	// try {
-	// getRemoteApiInstaller().install(getRemoteApiOptions());
-	//
-	// for (int i = 0; i < entityMapList.size(); i++) {
-	//
-	// Map<String, String> map = entityMapList.get(i);
-	// Entity entity = new Entity(entityName);
-	// Set<String> entityFields = map.keySet();
-	// for (String field : entityFields) {
-	// entity.setProperty(field, map.get(field));
-	// }
-	//
-	// entities.add(entity);
-	//
-	// // entity.setProperty("id",Integer.valueOf(map.get("id")));
-	// // entity.setProperty("firstName", map.get("first_name"));
-	// // entity.setProperty("lastName", map.get("last_name"));
-	// // entity.setProperty("address", map.get("address"));
-	// // entity.setProperty("city", map.get("city"));
-	// // entity.setProperty("telephone", map.get("telephone"));
-	//
-	// //
-	// }
-	//
-	//
-	// } catch(Exception exception){
-	//
-	// } finally {
-	// getRemoteApiInstaller().uninstall();
-	// }
-	//
-	//
-	//
-	// }
 
 	private Map<String, String> getMap(String[] header, String[] fields) {
 		Map<String, String> map = new HashMap<String, String>();

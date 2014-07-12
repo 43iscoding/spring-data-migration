@@ -15,11 +15,4 @@
         <property name="migrationFolder" value="${migrationfolder}" />
     </bean>
     
-    
-    
-    
-    
-	
-    
-    
 </beans>

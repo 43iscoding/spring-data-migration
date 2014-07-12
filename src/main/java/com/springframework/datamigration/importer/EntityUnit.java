@@ -10,7 +10,6 @@ public class EntityUnit {
 	public List<EntityField> getEntityFieldsToPersist() {
 		return entityFieldsToPersist;
 	}
-
 	public void addFieldToPersist(EntityField entityField) {
 		entityFieldsToPersist.add(entityField);
 	}
