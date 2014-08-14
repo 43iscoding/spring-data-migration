@@ -6,7 +6,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
     
-    <!-- creates a java.util.Map instance with values loaded from the supplied 'sourceMap' -->
+    <!-- creates a java.util.Map instance with values loaded from the supplied 'sourceMap' 	-->
 	<bean id="tableToEntityMapping" class="org.springframework.beans.factory.config.MapFactoryBean">
 	  <property name="sourceMap">
 	      <map>
@@ -21,6 +21,17 @@
 	  </property>
 	</bean>
 	
+
+	
+	<!-- 
+	<bean id="tableToEntityMapping" class="org.springframework.beans.factory.config.MapFactoryBean">
+	  <property name="sourceMap">
+	      <map>
+	        <entry key="users" value="users"/>
+	      </map>
+	  </property>
+	</bean>
+	-->
 	
     
     </beans>

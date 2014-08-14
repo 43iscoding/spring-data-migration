@@ -67,6 +67,11 @@ public class Utils {
 	// }
 
 	public static String getColumnNameAsEntityField(String columnName) {
+		
+		if(columnName==null){
+			return "";
+		}
+		
 		List<String> str = new ArrayList<String>();
 		if (columnName.contains("_")) {
 			columnName = columnName.toLowerCase();
@@ -89,6 +94,8 @@ public class Utils {
 				entityFieldName.append(str.get(i));
 			}
 		}
+		
+		
 		return entityFieldName.toString();
 	}
 

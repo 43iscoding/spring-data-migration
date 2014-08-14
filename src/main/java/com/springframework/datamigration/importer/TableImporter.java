@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -24,6 +26,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
+import com.springframework.datamigration.utils.Status;
 import com.springframework.datamigration.utils.Utils;
 
 public class TableImporter implements Runnable {
@@ -31,6 +34,8 @@ public class TableImporter implements Runnable {
 	protected RemoteApiInstaller remoteApiInstaller;
 
 	private RemoteApiOptions remoteApiOptions;
+	
+	private JdbcTemplate jdbcTemplate;
 
 	private String folderName;
 
@@ -45,6 +50,9 @@ public class TableImporter implements Runnable {
 
 	@Value("${password}")
 	private String password;
+	
+	private int entitiesExportCount;
+	
 
 	public String getTableToExport() {
 		return tableToExport;
@@ -99,6 +107,10 @@ public class TableImporter implements Runnable {
 		this.folderName = folderName;
 	}
 
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+	
 	public void run() {
 
 		System.out
@@ -107,44 +119,50 @@ public class TableImporter implements Runnable {
 		List<File> files = getFiles();
 		try {
 			exportToAppEngineDataStore(files);
-			importerCountLatch.countDown();
+			updateExecutionStatus(entityName,entitiesExportCount,Status.SUCCESS,new Date());
+
 			System.out
 					.println("Completed Creation of App Engine Datastore Entities for table [ "
 							+ tableToExport + " ] from the CSV files");
+			
+			Thread.sleep(1000);
+			importerCountLatch.countDown();
+			
+		} catch(Exception e){
+			e.printStackTrace();
+			updateExecutionStatus(entityName,entitiesExportCount,Status.FAILURE,new Date());
 		} finally {
 		}
 
 	}
 
-	public void exportToAppEngineDataStore(List<File> files) {
+	private void updateExecutionStatus(final String entityName,
+			final Integer entitiesExportCount,final Status status,final Date date) {
+		
+		final String INSERT_SQL = "INSERT INTO DATA_IMPORT_RESULT ("
+				+ "ENTITY_NAME,"
+				+ "ENTITIES_CREATED_COUNT,"
+				+ "ENTITIES_CREATION_STATUS,"
+				+ "ENTITIES_CREATION_DATE) VALUES (?,?,?,?)";
+		
+		
+		jdbcTemplate.update(INSERT_SQL, entityName,entitiesExportCount,status.name(),new java.sql.Date(date.getTime()));
+	}
+
+	public void exportToAppEngineDataStore(List<File> files) throws IOException {
 		for (File file : files) {
 			List<String> lines = readFile(file);
 			List<Entity> entities = retrieveEntities(lines);
+			entitiesExportCount = entitiesExportCount+ entities.size();
 			saveToDataStore(entities);
 		}
 		createSequence(entityName, Utils.createEntitySequenceName(entityName),
 				Utils.createEntitySequenceId(entityName));
 	}
 
-	public void initialization() {
-		remoteApiOptions.server(hostname, port)
-				.credentials(userEmail, password);
 
-		try {
-			getRemoteApiInstaller().install(getRemoteApiOptions());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 
-	}
-
-	public void cleanup() {
-
-		getRemoteApiInstaller().uninstall();
-
-	}
-
-	public void saveToDataStore(List<Entity> entities) {
+	public void saveToDataStore(List<Entity> entities) throws IOException {
 
 		// initialization();
 
@@ -156,12 +174,12 @@ public class TableImporter implements Runnable {
 			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 			ds.put(entities);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw e;
 		} finally {
 			getRemoteApiInstaller().uninstall();
 		}
 
-		// cleanup();
+	
 
 	}
 
@@ -269,6 +287,7 @@ public class TableImporter implements Runnable {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	
 
 	public int getPort() {
 		return port;
@@ -313,6 +332,9 @@ public class TableImporter implements Runnable {
 			Set<Integer> idSet = new HashSet<Integer>();
 			for (Entity entity : preparedQuery.asIterable()) {
 				String idMax = String.valueOf(entity.getProperty("id"));
+				if(idMax==null || idMax.equals("null")){
+					return;
+				}
 				idSet.add(Integer.valueOf(idMax));
 			}
 			Entity entity = new Entity(entitySequenceName);

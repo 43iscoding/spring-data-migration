@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,14 +22,14 @@ public class DataExporter implements Runnable {
 
 	public void run() {
 
-		ExecutorService executorService = Executors.newFixedThreadPool(5);
+		Properties configurationProperties = (Properties) context.getBean("threadPoolPropertiesConfiguration");
+		ExecutorService executorService = Executors.newFixedThreadPool( Integer.valueOf(configurationProperties.getProperty("exportThreadPoolSize")));
+		
 		List<String> databaseTables = getDatabaseTableNames();
-
 		CountDownLatch exporterCountLatch = new CountDownLatch(
 				databaseTables.size());
 		for (String tableName : databaseTables) {
-			TableExporter tableExporterBean = (TableExporter) context
-					.getBean("tableExporter");
+			TableExporter tableExporterBean = (TableExporter) context.getBean("tableExporter");
 			tableExporterBean.setTableName(tableName.toUpperCase());
 			tableExporterBean.setCountDownLatch(exporterCountLatch);
 			executorService.submit(tableExporterBean);
@@ -42,7 +43,6 @@ public class DataExporter implements Runnable {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	public ApplicationContext getContext() {
@@ -67,6 +67,9 @@ public class DataExporter implements Runnable {
 				return tablenames;
 			}
 		});
+		
+		tablenames.remove("data_export_result");
+		tablenames.remove("data_import_result");
 		return tablenames;
 	}
 

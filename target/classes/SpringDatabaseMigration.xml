@@ -15,5 +15,13 @@
 
    <context:property-placeholder location="classpath:SpringDatabaseMigration.properties" system-properties-mode="OVERRIDE"/> 
    
-    
+   <bean id="threadPoolPropertiesConfiguration" class="java.util.Properties" >
+	    <constructor-arg>
+	        <props>
+	            <prop key="exportThreadPoolSize">${exportThreadPoolSize}</prop>
+	             <prop key="importThreadPoolSize">${importThreadPoolSize}</prop>
+	        </props>
+	    </constructor-arg>
+	</bean>
+	
 </beans>

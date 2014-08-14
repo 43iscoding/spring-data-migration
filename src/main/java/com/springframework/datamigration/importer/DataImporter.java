@@ -1,6 +1,7 @@
 package com.springframework.datamigration.importer;
 
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -15,11 +16,11 @@ public class DataImporter implements Runnable {
 	private ApplicationContext context;
 
 	public void run() {
-
-		Map<String, String> tableToEntityMap = (Map<String, String>) context
-				.getBean("tableToEntityMapping");
-
-		ExecutorService executorService = Executors.newFixedThreadPool(1);
+		
+		Properties configurationProperties = (Properties) context.getBean("threadPoolPropertiesConfiguration");
+		ExecutorService executorService = Executors.newFixedThreadPool( Integer.valueOf(configurationProperties.getProperty("importThreadPoolSize")) );
+	
+		Map<String, String> tableToEntityMap = (Map<String, String>) context.getBean("tableToEntityMapping");
 		Set<String> databaseTableNames = tableToEntityMap.keySet();
 		CountDownLatch importerCountLatch = new CountDownLatch(
 				databaseTableNames.size() - 1);
@@ -32,6 +33,7 @@ public class DataImporter implements Runnable {
 			tableImporter.setFolderName(tableName.toUpperCase());
 			executorService.submit(tableImporter);
 		}
+		
 		executorService.shutdown();
 
 		try {
