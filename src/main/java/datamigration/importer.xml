@@ -2,30 +2,23 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:p="http://www.springframework.org/schema/p"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-     	<context:component-scan base-package="datamigration.importer"></context:component-scan>
-     
-        <bean id="tableImporter" class="datamigration.importer.TableImporter" scope="prototype">
-            <property name="jdbcTemplate" ref="jdbcTemplate"/>
-            <property name="remoteApiInstaller" ref="remoteApiInstaller"/>
-            <property name="remoteApiOptions" ref="remoteApiOptions"/>
-            <property name="migrationFolder" value="${migration.cvsOutputFolder}"/>
+<context:component-scan base-package="datamigration.importer"/>
 
-            <property name="hostname" value="${gae.hostname}"/>
-            <property name="port" value="${gae.port}"/>
-            <property name="userEmail" value="${gae.userEmail}"/>
-            <property name="password" value="${gae.password}"/>
-        </bean>
-        
-		<bean id="remoteApiInstaller" class="com.google.appengine.tools.remoteapi.RemoteApiInstaller" scope="prototype">
-        </bean>
-        
-        <bean id="remoteApiOptions" class="com.google.appengine.tools.remoteapi.RemoteApiOptions" scope="prototype">
-        </bean>
-        
-    
-    
+<bean id="tableImporter" class="datamigration.importer.TableImporter" scope="prototype">
+    <property name="remoteApiInstaller" ref="remoteApiInstaller"/>
+    <property name="remoteApiOptions" ref="remoteApiOptions"/>
+    <property name="migrationFolder" value="${migration.cvsOutputFolder}"/>
+
+    <property name="hostname" value="${gae.hostname}"/>
+    <property name="port" value="${gae.port}"/>
+    <property name="userEmail" value="${gae.userEmail}"/>
+    <property name="password" value="${gae.password}"/>
+</bean>
+
+<bean id="remoteApiInstaller" class="com.google.appengine.tools.remoteapi.RemoteApiInstaller" scope="prototype"/>
+<bean id="remoteApiOptions" class="com.google.appengine.tools.remoteapi.RemoteApiOptions" scope="prototype"/>
+
 </beans>

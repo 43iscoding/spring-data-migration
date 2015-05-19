@@ -8,9 +8,7 @@ import java.util.concurrent.*;
 public class DataImporter implements Runnable {
 
 	private ApplicationContext context;
-
 	private CountDownLatch countDownLatch;
-
 
 	/**
 	 * The run() method create a fixed size thread pool of worker threads. The
@@ -24,6 +22,7 @@ public class DataImporter implements Runnable {
 				.valueOf(configurationProperties
 						.getProperty("importThreadPoolSize")));
 
+        //TODO: Fix this bad mapping
 		Map<String, String> tableToEntityMap = (Map<String, String>) context.getBean("tableToEntityMapping");
 		Set<String> databaseTableNames = tableToEntityMap.keySet();
 		CountDownLatch importerCountLatch = new CountDownLatch(databaseTableNames.size() - 1);
@@ -50,25 +49,12 @@ public class DataImporter implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
-	// getter method
-	public ApplicationContext getContext() {
-		return context;
-	}
-	
-	//setter method
+
 	public void setContext(ApplicationContext context) {
 		this.context = context;
 	}
 
-	// getter method
-	public CountDownLatch getCountDownLatch() {
-		return countDownLatch;
-	}
-	
-	//setter method
 	public void setCountDownLatch(CountDownLatch countDownLatch) {
 		this.countDownLatch = countDownLatch;
 	}
-
 }

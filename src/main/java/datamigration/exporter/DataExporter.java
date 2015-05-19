@@ -13,9 +13,7 @@ import java.util.concurrent.*;
 public class DataExporter implements Runnable {
 
 	private ApplicationContext context;
-
 	private CountDownLatch countDownLatch;
-	
 	
 	/**
 	 *  The run() method create a fixed size thread pool of worker threads. 
@@ -25,7 +23,8 @@ public class DataExporter implements Runnable {
 		Properties configurationProperties = (Properties) context.getBean("threadPoolPropertiesConfiguration");
 		ExecutorService executorService = Executors.newFixedThreadPool( Integer.valueOf(configurationProperties.getProperty("exportThreadPoolSize")));
 		List<String> databaseTables = getDatabaseTableNames();
-		CountDownLatch exporterCountLatch = new CountDownLatch(
+        System.out.println("Found " + databaseTables.size() + " tables");
+        CountDownLatch exporterCountLatch = new CountDownLatch(
 				databaseTables.size());
 		Collection<Future<?>> futures = new LinkedList<Future<?>>();
 		for (String tableName : databaseTables) {
@@ -37,7 +36,7 @@ public class DataExporter implements Runnable {
 		executorService.shutdown();
 		try {
 			for (Future<?> future:futures) {
-				future.get(); // cause the current thread to wait for the table export tasks to finish.
+				future.get();
 			}
 			exporterCountLatch.await();
 			countDownLatch.countDown();
@@ -55,8 +54,7 @@ public class DataExporter implements Runnable {
 	 */
 	private List<String> getDatabaseTableNames() {
 		final List<String> tablenames = new ArrayList<String>();
-		JdbcTemplate jdbcTemplate = (JdbcTemplate) context
-				.getBean("jdbcTemplate");
+		JdbcTemplate jdbcTemplate = (JdbcTemplate) context.getBean("jdbcTemplate");
 		String showTables = "SHOW TABLES";
 		jdbcTemplate.query(showTables, new ResultSetExtractor<List<String>>() {
 			public List<String> extractData(ResultSet rs) throws SQLException,
@@ -67,37 +65,14 @@ public class DataExporter implements Runnable {
 				return tablenames;
 			}
 		});
-		
-		tablenames.remove("data_export_result");
-		tablenames.remove("data_import_result");
+
 		return tablenames;
 	}
 
-
-	/**
-	 * The getter method. 
-	 */
-	public ApplicationContext getContext() {
-		return context;
-	}
-	
-	/**
-	 * The setter method. 
-	 */
 	public void setContext(ApplicationContext context) {
 		this.context = context;
 	}
 
-	/**
-	 * The getter method. 
-	 */
-	public CountDownLatch getCountDownLatch() {
-		return countDownLatch;
-	}
-	
-	/**
-	 * The setter method. 
-	 */
 	public void setCountDownLatch(CountDownLatch countDownLatch) {
 		this.countDownLatch = countDownLatch;
 	}		

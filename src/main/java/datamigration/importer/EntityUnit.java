@@ -13,5 +13,4 @@ public class EntityUnit {
 	public void addFieldToPersist(EntityField entityField) {
 		entityFieldsToPersist.add(entityField);
 	}
-
 }

@@ -13,27 +13,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class TableExporter implements Runnable {
 
-	private CountDownLatch countDownLatch;
-
-	protected int fetchSize;
+    private String migrationFolder;
+	private int fetchSize;
 
 	private JdbcTemplate jdbcTemplate;
-
-	protected String migrationFolder;
-
+    private CountDownLatch countDownLatch;
 	private int recordCount;
 
 	private String tableColumnDatabaseTypes;
-
 	private String tableColumnNames;
-
 	private String tableName;
 	
 	/**
@@ -43,29 +36,26 @@ public class TableExporter implements Runnable {
 	 */
 	public void run() {
 
-		System.out.println("Starting to export Data from Table [ "
-				+ getTableName() + " ] to CSV files");
+		System.out.println("Export started from Table [ " + tableName + " ]");
+        long startTime = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
 		populateTableRecordCount();
 		populateTableMetaData();
 		try {
 			exportToCSV();
-			updateExecutionStatus(tableName, recordCount, Status.SUCCESS,
-					new Date());
+			updateExecutionStatus(tableName, recordCount, Status.SUCCESS, startTime);
 		} catch (Exception e) {
             e.printStackTrace();
-            updateExecutionStatus(tableName, null, Status.FAILURE, new Date());
+            updateExecutionStatus(tableName, null, Status.FAILURE, startTime);
 		}
 		countDownLatch.countDown();
-		System.out.println("Finished exporting Data from Table [ "
-				+ getTableName() + " ] to CSV files");
 	}
 	
 	/**
 	 * The method gets the count of total number of records in the table.
 	 */
 	private void populateTableRecordCount() {
-		int recordCount = getJdbcTemplate().queryForInt(getRecordCountQuery());
-		setRecordCount(recordCount);
+		Integer recordCount = jdbcTemplate.queryForObject(getRecordCountQuery(), Integer.class);
+		setRecordCount(recordCount != null ? recordCount : 0);
 	}
 	
 	/**
@@ -76,15 +66,15 @@ public class TableExporter implements Runnable {
 		String jdbcTableMetaDataQuery = getTableMetaDataQuery();
 		final List<String> columnName = new ArrayList<String>();
 		final List<String> columnType = new ArrayList<String>();
-		getJdbcTemplate().query(jdbcTableMetaDataQuery,
-				new RowMapper<String>() {
-					public String mapRow(ResultSet rs, int rowNum)
-							throws SQLException {
-						columnName.add(normalize(rs.getString(1)));
-						columnType.add(normalize(rs.getString(2)));
-						return null;
-					}
-				});
+        jdbcTemplate.query(jdbcTableMetaDataQuery,
+                new RowMapper<String>() {
+                    public String mapRow(ResultSet rs, int rowNum)
+                            throws SQLException {
+                        columnName.add(normalize(rs.getString(1)));
+                        columnType.add(normalize(rs.getString(2)));
+                        return null;
+                    }
+                });
 
 		setTableColumnNames(Utils.getCSV(columnName));
 		setTableColumnDatabaseTypes(Utils.getCSV(columnType));
@@ -99,21 +89,23 @@ public class TableExporter implements Runnable {
 		int noCSVFiles = csvFilesPerTable();
 		prepareDirectory();
 		int lowerLimit = 0;
-		PrintWriter pw = null;
 		for (int i = 0; i < noCSVFiles; i++) {
-			File file = new File(this.migrationFolder + "\\" + getFolderName(),
-					getFileNamePrefix() + i + ".csv");
+			File file = new File(this.migrationFolder + "\\" + tableName,
+					tableName + i + ".csv");
 			try {
-				file.createNewFile();
-				pw = new PrintWriter(file);
+				if (file.createNewFile()) {
+                    PrintWriter pw = new PrintWriter(file);
+                    String fileContentsToWrite = getFileContentToWrite(lowerLimit);
+                    pw.write(fileContentsToWrite);
+                    pw.flush();
+                    pw.close();
+                    lowerLimit = lowerLimit + fetchSize;
+                } else {
+                    System.out.println("Could not create file: " + file.getAbsolutePath());
+                }
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
-			String fileContentsToWrite = getFileContentToWrite(lowerLimit);
-			pw.write(fileContentsToWrite);
-			pw.flush();
-			pw.close();
-			lowerLimit = lowerLimit + fetchSize;
 		}
 	}
 	
@@ -125,13 +117,13 @@ public class TableExporter implements Runnable {
 	 * @return integer
 	 */
 	public int csvFilesPerTable() {
-		int noCSVFiles = 0;
-		if (getRecordCount() < getFetchSize()) {
+		int noCSVFiles;
+		if (recordCount < fetchSize) {
 			noCSVFiles = 1;
-		} else if (getRecordCount() % getFetchSize() == 0) {
-			noCSVFiles = getRecordCount() / getFetchSize();
+		} else if (recordCount % fetchSize == 0) {
+			noCSVFiles = recordCount / fetchSize;
 		} else {
-			noCSVFiles = getRecordCount() / getFetchSize() + 1;
+			noCSVFiles = recordCount / fetchSize + 1;
 		}
 		return noCSVFiles;
 	}
@@ -140,18 +132,15 @@ public class TableExporter implements Runnable {
 	 * The method just update the status of the export of the table.
 	 * 
 	 * @param tableName - The name of the table in the database exported as CSV file
-	 * @param recordCount - The number of records that are exported.
+	 * @param count - The number of records that are exported.
 	 * @param status - The status of the export of the table
-	 * @param date - The date on which the table exported.
+     * @param time - Start time of import
 	 */
-	private void updateExecutionStatus(String tableName, Integer recordCount,
-			Status status, Date date) {
-		/*final String INSERT_SQL = "INSERT INTO DATA_EXPORT_RESULT (TABLE_NAME,"
-				+ "ROWS_EXPORTED_COUNT," + "ROWS_EXPORT_STATUS,"
-				+ "ROWS_EXPORTATION_DATE) VALUES (?,?,?,?)";
-		jdbcTemplate.update(INSERT_SQL, tableName, recordCount, status.name(),
-				new java.sql.Date(date.getTime()));*/
-        System.out.println(date + ": CSV Export of table \"" + tableName + "\"(" + recordCount + " entries) STATUS = " + status);
+	private void updateExecutionStatus(final String tableName, final Integer count,
+			final Status status, final long time) {
+        long timeFinish = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
+        System.out.println("Import finished for [ " + tableName +
+                " ] (" + count + " entries). STATUS = " + status + " (" + (timeFinish - time) + "ms)");
     }
 	
 	/**
@@ -165,19 +154,19 @@ public class TableExporter implements Runnable {
 	 *         to a CSV file.
 	 */
 	public String getFileContentToWrite(int lowerLimit) {
-		return getJdbcTemplate().query(getQuery(),
+		return jdbcTemplate.query(getQuery(),
 				new Object[] { lowerLimit, fetchSize },
 				new ResultSetExtractor<String>() {
 					public String extractData(ResultSet rs)
 							throws SQLException, DataAccessException {
-						StringBuffer fileContentsToWrite = null;
+						StringBuffer fileContentsToWrite;
 						fileContentsToWrite = new StringBuffer();
-						fileContentsToWrite.append(getTableColumnNames());
+						fileContentsToWrite.append(tableColumnNames);
 						fileContentsToWrite.append("\n");
 						fileContentsToWrite
-								.append(getTableColumnDatabaseTypes());
+								.append(tableColumnDatabaseTypes);
 						fileContentsToWrite.append("\n");
-						List<String> row = null;
+						List<String> row;
 						while (rs.next()) {
 							row = new ArrayList<String>();
 							for (int columnNo = 1; columnNo <= rs.getMetaData().getColumnCount(); columnNo++) {
@@ -205,7 +194,7 @@ public class TableExporter implements Runnable {
 	 * files will be placed.
 	 */
 	public void prepareDirectory() {
-		File dir = new File(this.migrationFolder + "\\" + getFolderName());
+		File dir = new File(this.migrationFolder + "\\" + tableName);
 		if (dir.exists()) {
 			try {
 				FileUtils.deleteDirectory(dir);
@@ -213,110 +202,51 @@ public class TableExporter implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		dir.mkdir();
+		if (!dir.mkdir()) {
+            System.out.println("Could not create folder: " + dir);
+        }
 	}		
 
-	//getter method
-	public CountDownLatch getCountDownLatch() {
-		return countDownLatch;
-	}
-	
-	//setter method
 	public void setCountDownLatch(CountDownLatch countDownLatch) {
 		this.countDownLatch = countDownLatch;
 	}
-	
-	//getter method
-	public int getFetchSize() {
-		return fetchSize;
-	}
-	
-	//setter method
+
 	public void setFetchSize(int fetchSize) {
 		this.fetchSize = fetchSize;
 	}
 
-	//getter method
-	public String getFileNamePrefix() {
-		return tableName.toUpperCase();
-	}
-
-	//getter method
-	public String getFolderName() {
-		return tableName.toUpperCase();
-	}
-	
-	//getter method
-	public JdbcTemplate getJdbcTemplate() {
-		return jdbcTemplate;
-	}
-
-	//setter method
 	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
-	
-	//getter method
-	public String getMigrationFolder() {
-		return migrationFolder;
-	}
-	
-	//setter method
+
 	public void setMigrationFolder(String migrationFolder) {
 		this.migrationFolder = migrationFolder;
 	}
 
-	//getter method
 	public String getQuery() {
 		return Utils.getTableRecordSelectQuery(tableName);
 	}
 
-	//getter method
-	public int getRecordCount() {
-		return recordCount;
-	}
-
-	//setter method
 	public void setRecordCount(int recordCount) {
 		this.recordCount = recordCount;
 	}
 
-	//getter method
 	public String getRecordCountQuery() {
-		return Utils.getTableRecordCountQuery(this.tableName);
+		return Utils.getTableRecordCountQuery(tableName);
 	}
 
-	//getter method
-	public String getTableColumnDatabaseTypes() {
-		return tableColumnDatabaseTypes;
-	}
-	
-	//setter method
 	public void setTableColumnDatabaseTypes(String tableColumnDatabaseTypes) {
 		this.tableColumnDatabaseTypes = tableColumnDatabaseTypes;
 	}
 
-	//getter method
-	public String getTableColumnNames() {
-		return tableColumnNames;
-	}
-	
-	//setter method
 	public void setTableColumnNames(String tableColumnNames) {
 		this.tableColumnNames = tableColumnNames;
 	}
 
-	//getter method
 	public String getTableMetaDataQuery() {
-		return Utils.getTableMetaDataQuery(this.tableName);
+		return Utils.getTableMetaDataQuery(tableName);
 	}
 
-	//getter method
-	public String getTableName() {
-		return tableName;
-	}
-
-	//setter method
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
 	}

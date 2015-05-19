@@ -5,7 +5,6 @@ import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
 import datamigration.utils.Status;
 import datamigration.utils.Utils;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.*;
 import java.util.*;
@@ -13,51 +12,39 @@ import java.util.concurrent.CountDownLatch;
 
 public class TableImporter implements Runnable {
 
-	private int entitiesExportCount;
+    private String migrationFolder;
+    private CountDownLatch importerCountLatch;
+
+    private String tableToExport;
+    private int entitiesExportCount;
+
+    private RemoteApiInstaller remoteApiInstaller;
+    private RemoteApiOptions remoteApiOptions;
 
 	private String entityName;
-	
 	private String folderName;
-
 	private String hostname;
+    private int port;
 
-	private CountDownLatch importerCountLatch;
+    private String userEmail;
+    private String password;
 
-	private JdbcTemplate jdbcTemplate;
-
-	protected String migrationFolder;
-
-	private String password;
-
-	private int port;	
-
-	protected RemoteApiInstaller remoteApiInstaller;
-
-	private RemoteApiOptions remoteApiOptions;
-
-	private String tableToExport;
-
-	private String userEmail;
-	
 	/**
 	 * The run() method contains the workflow logic for exporting the CSV files into
 	 * GAE Datastore as entities and also for logging the result of export to the
 	 * database.
 	 */
 	public void run() {
-		System.out
-				.println("Creating App Engine Datastore Entities for table [ "
-						+ tableToExport + " ] from the CSV files");
+		System.out.println("Import started for Entity [ " + tableToExport + " ]");
+        long startTime = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
 		List<File> files = getFiles();
 		try {
 			exportToAppEngineDataStore(files);
-			updateExecutionStatus(entityName,entitiesExportCount,Status.SUCCESS,new Date());
-			System.out.println("Completed Creation of App Engine Datastore Entities for table [ "
-                    + tableToExport + " ] from the CSV files");
+			updateExecutionStatus(entityName, entitiesExportCount,Status.SUCCESS, startTime);
 			importerCountLatch.countDown();			
 		} catch(Exception e){
 			e.printStackTrace();
-			updateExecutionStatus(entityName,entitiesExportCount,Status.FAILURE,new Date());
+			updateExecutionStatus(entityName, entitiesExportCount,Status.FAILURE, startTime);
 		} 
 	}
 	
@@ -83,18 +70,15 @@ public class TableImporter implements Runnable {
 	 * The method  update the status of the import of the table records in the GAE Datastore.
 	 * 
 	 * @param entityName- The name of the Entity Kind underwhich the entites are stored.
-	 * @param entitiesExportCount - The number of entites that are created for a particular Entity Kind.
+	 * @param count - The number of entites that are created for a particular Entity Kind.
 	 * @param status - The status of the import of the table records in to GAE Datastore
-	 * @param date   - The date on which the table is imported.
+	 * @param time - Start time of import
 	 */	
 	private void updateExecutionStatus(final String entityName,
-			final Integer entitiesExportCount,final Status status,final Date date) {		
-		final String INSERT_SQL = "INSERT INTO DATA_IMPORT_RESULT ("
-				+ "ENTITY_NAME,"
-				+ "ENTITIES_CREATED_COUNT,"
-				+ "ENTITIES_CREATION_STATUS,"
-				+ "ENTITIES_CREATION_DATE) VALUES (?,?,?,?)";		
-		jdbcTemplate.update(INSERT_SQL, entityName,entitiesExportCount,status.name(),new java.sql.Date(date.getTime()));
+			final Integer count, final Status status, final long time) {
+        long timeFinish = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
+        System.out.println("Import finished for [ " + entityName +
+                " ] (" + count + " entries). STATUS = " + status + " (" + (timeFinish - time) + "ms)");
 	}
 	
 	/**
@@ -107,13 +91,14 @@ public class TableImporter implements Runnable {
 		remoteApiOptions.server(hostname, port)
 				.credentials(userEmail, password);
 		try {
-			getRemoteApiInstaller().install(getRemoteApiOptions());
+            remoteApiInstaller.install(remoteApiOptions);
 			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 			ds.put(entities);
 		} catch (IOException e) {
-			throw e;
+            System.out.println("Error while saving to data store: " + e.getMessage());
+            throw e;
 		} finally {
-			getRemoteApiInstaller().uninstall();
+            remoteApiInstaller.uninstall();
 		}
 	}
 	
@@ -127,7 +112,7 @@ public class TableImporter implements Runnable {
 			String entitySequenceIdName) {
 		remoteApiOptions.server(hostname, port).credentials(userEmail, password);
 		try {
-			getRemoteApiInstaller().install(getRemoteApiOptions());
+            remoteApiInstaller.install(remoteApiOptions);
 			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 			Query query = new Query(entityName);
 			PreparedQuery preparedQuery = ds.prepare(query);
@@ -145,19 +130,17 @@ public class TableImporter implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			getRemoteApiInstaller().uninstall();
+            remoteApiInstaller.uninstall();
 		}
 	}
 
 	/**
 	 * The method populates the list 'entities' with GAE Datastore Entity objects.
-	 * @param entities
-	 * @param entityMapList
 	 */
 	public void createEntities(List<Entity> entities,List<EntityUnit> entityMapList) {
         remoteApiOptions.server(hostname, port).credentials(userEmail, password);
 		try {
-			getRemoteApiInstaller().install(getRemoteApiOptions());
+            remoteApiInstaller.install(remoteApiOptions);
 			for(EntityUnit entityUnit :entityMapList ){
 				Entity entity = new Entity(entityName);
 				List<EntityField> entityFieldList = entityUnit.getEntityFieldsToPersist();
@@ -175,7 +158,7 @@ public class TableImporter implements Runnable {
             System.out.println("Exception while creating entities: " + exception);
             exception.printStackTrace();
         } finally {
-			getRemoteApiInstaller().uninstall();
+            remoteApiInstaller.uninstall();
 		}
 	}
 	
@@ -195,8 +178,7 @@ public class TableImporter implements Runnable {
 	 * @return List<File>
 	 */
 	public List<File> getFiles() {
-		File file = new File(this.migrationFolder + "\\" + getFolderName());
-        System.out.println("Get files from " + file);
+		File file = new File(this.migrationFolder + "\\" + folderName);
 
         File[] files = file.listFiles();
         if (files == null) return Collections.emptyList();
@@ -204,14 +186,6 @@ public class TableImporter implements Runnable {
         return Arrays.asList(files);
 	}
 
-	private Map<String, String> getMap(String[] header, String[] fields) {
-		Map<String, String> map = new HashMap<String, String>();
-		for (int i = 0; i < header.length; i++) {
-			map.put(header[i], fields[i]);
-		}
-		return map;
-	}
-	
 	/**
 	 * The method reads a file and return it as a list of strings.
 	 * @param file - The CSV file object.
@@ -254,46 +228,6 @@ public class TableImporter implements Runnable {
 		return entities;
 	}
 
-	public RemoteApiInstaller getRemoteApiInstaller() {
-		return remoteApiInstaller;
-	}
-
-	public RemoteApiOptions getRemoteApiOptions() {
-		return remoteApiOptions;
-	}
-
-	public String getTableToExport() {
-		return tableToExport;
-	}
-
-	public String getUserEmail() {
-		return userEmail;
-	}
-
-	public String getFolderName() {
-		return folderName;
-	}
-
-	public String getHostname() {
-		return hostname;
-	}
-
-	public CountDownLatch getImporterCountLatch() {
-		return importerCountLatch;
-	}
-
-	public String getMigrationFolder() {
-		return migrationFolder;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
 	public void setEntityName(String entityName) {
 		this.entityName = entityName;
 	}
@@ -308,10 +242,6 @@ public class TableImporter implements Runnable {
 
 	public void setImporterCountLatch(CountDownLatch importerCountLatch) {
 		this.importerCountLatch = importerCountLatch;
-	}
-
-	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
 	}
 
 	public void setMigrationFolder(String migrationFolder) {
