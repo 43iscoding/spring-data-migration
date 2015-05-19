@@ -11,8 +11,8 @@
     
     <bean id="tableExporter" class="datamigration.exporter.TableExporter" scope="prototype">
         <property name="jdbcTemplate" ref="jdbcTemplate"/>
-        <property name="fetchSize" value="${fetchSize}"/>
-        <property name="migrationFolder" value="${migrationfolder}" />
+        <property name="fetchSize" value="${migration.fetchSize}"/>
+        <property name="migrationFolder" value="${migration.cvsOutputFolder}" />
     </bean>
     
 </beans>

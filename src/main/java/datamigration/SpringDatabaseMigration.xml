@@ -20,8 +20,8 @@
 <bean id="threadPoolPropertiesConfiguration" class="java.util.Properties" >
     <constructor-arg>
         <props>
-            <prop key="exportThreadPoolSize">${exportThreadPoolSize}</prop>
-            <prop key="importThreadPoolSize">${importThreadPoolSize}</prop>
+            <prop key="exportThreadPoolSize">${migration.exportThreadPoolSize}</prop>
+            <prop key="importThreadPoolSize">${migration.importThreadPoolSize}</prop>
         </props>
     </constructor-arg>
 </bean>
