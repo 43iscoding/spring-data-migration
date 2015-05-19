@@ -1,22 +1,15 @@
-package com.springframework.datamigration;
+package datamigration;
+
+import datamigration.exporter.DataExporter;
+import datamigration.importer.DataImporter;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Calendar;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.springframework.datamigration.exporter.DataExporter;
-import com.springframework.datamigration.importer.DataImporter;
-
-/**
- * @author Prasanth M P.
- * 
- * The main class for beginning the migration.
- */
 
 public class SpringDataMigration {
 
@@ -126,7 +119,7 @@ public class SpringDataMigration {
 	 * The method loads the application configuration files prior to execution.
 	 */
 	public static void loadApplicationContext() {
-		ctx = new ClassPathXmlApplicationContext("SpringDatabaseMigration.xml");
+        ctx = new FileSystemXmlApplicationContext("src/main/java/datamigration/SpringDatabaseMigration.xml");
 	}
 
 }

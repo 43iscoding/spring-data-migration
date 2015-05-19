@@ -1,41 +1,18 @@
-package com.springframework.datamigration.utils;
+package datamigration.utils;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
 public class Utils {
 
-	private Utils() {
-	}
+    public static final Object ERROR = new Object();
 
 	private static String TABLE_METADATA_QUERY = "SHOW COLUMNS  FROM %s";
 	
 	private static String RECORD_COUNT_QUERY = "SELECT COUNT(*) FROM %s";
 	
 	private static String QUERY = "SELECT * FROM %s LIMIT ? , ?";
-
-	private static List<String> DATABASE_TYPE_INTEGER = new ArrayList<String>();
-
-	private static List<String> DATABASE_TYPE_VARCHAR = new ArrayList<String>();
-
-	private static List<String> DATABASE_TYPE_DATE = new ArrayList<String>();
-
-	static {
-		DATABASE_TYPE_INTEGER.add("int");
-	}
-
-	static {
-		DATABASE_TYPE_VARCHAR.add("varchar");
-	}
-
-	static {
-		DATABASE_TYPE_DATE.add("date");
-	}
 
 	public static String getTableMetaDataQuery(String tableName) {
 		return String.format(TABLE_METADATA_QUERY, tableName);
@@ -48,23 +25,6 @@ public class Utils {
 	public static String getTableRecordSelectQuery(String tableName) {
 		return String.format(QUERY, tableName);
 	}
-
-	// public static void main(String args[]){
-	//
-	// String str0 = "lastname";
-	// String str1 = "last_Name";
-	// String str2 = "last_name";
-	// String str3 = "last_name_id";
-	// String str4 = "last_name_id_Test";
-	//
-	// System.out.println(getColumnNameAsEntityField(str0));
-	// System.out.println(getColumnNameAsEntityField(str1));
-	// System.out.println(getColumnNameAsEntityField(str2));
-	// System.out.println(getColumnNameAsEntityField(str3));
-	// System.out.println(getColumnNameAsEntityField(str4));
-	//
-	//
-	// }
 
 	public static String getColumnNameAsEntityField(String columnName) {
 		
@@ -98,16 +58,6 @@ public class Utils {
 		
 		return entityFieldName.toString();
 	}
-
-	//
-	// public static void main(String args[]){
-	// List<String> str = new ArrayList<String>();
-	// str.add("abc1");
-	// str.add("abc2");
-	// str.add("abc3");
-	// str.add("abc4");
-	// System.out.println(getCSV(str));
-	// }
 
 	public static String getCSV(List<String> strings) {
 
@@ -144,20 +94,7 @@ public class Utils {
 	}
 
 	public static Object getMappingType(String databaseType, String value) {
-
-		for (String dbType : DATABASE_TYPE_INTEGER) {
-			if (databaseType.contains(dbType)) {
-				return new Integer(value);
-			}
-		}
-
-		for (String dbType : DATABASE_TYPE_VARCHAR) {
-			if (databaseType.contains(dbType)) {
-				return new String(value);
-			}
-		}
-
-		for (String dbType : DATABASE_TYPE_DATE) {
+		/*for (String dbType : DATABASE_TYPE_DATE) {
 			if (databaseType.contains(dbType)) {
 				DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 				Date parsedDate = null;
@@ -168,14 +105,29 @@ public class Utils {
 				}
 				return parsedDate;
 			}
-		}
+		}*/
 
 		return null;
 	}
 
+    public static Object map(String databaseType, String value) {
+        Type type = Type.fromDatabaseType(databaseType);
+        try {
+            switch (type) {
+                case FLOAT: return nullOrEmpty(value) ? null : Float.valueOf(value);
+                case INTEGER: return nullOrEmpty(value) ? null : Integer.valueOf(value);
+                case ENUM: return value;
+                case STRING: return value;
+                default: //Unknown
+                    System.out.println("Unknown type " + databaseType + " -> Fallback to string");
+                    return value;
+            }
+        } catch (NumberFormatException e) {
+            return ERROR;
+        }
+    }
 
-	
-	
-	
-	
+    private static boolean nullOrEmpty(String value) {
+        return value == null || value.isEmpty();
+    }
 }

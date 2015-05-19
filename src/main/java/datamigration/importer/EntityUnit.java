@@ -1,4 +1,4 @@
-package com.springframework.datamigration.importer;
+package datamigration.importer;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,12 @@
-package com.springframework.datamigration.exporter;
+package datamigration.exporter;
+
+import datamigration.utils.Status;
+import datamigration.utils.Utils;
+import org.apache.commons.io.FileUtils;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,29 +18,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
-
-import com.springframework.datamigration.utils.Status;
-import com.springframework.datamigration.utils.Utils;
-
-/**
- * @author Prasanth M P 
- */
 public class TableExporter implements Runnable {
 
 	private CountDownLatch countDownLatch;
 
-	@Value("${fetchSize}")
 	protected int fetchSize;
 
 	private JdbcTemplate jdbcTemplate;
 
-	@Value("${migrationfolder}")
 	protected String migrationFolder;
 
 	private int recordCount;
@@ -52,7 +45,6 @@ public class TableExporter implements Runnable {
 
 		System.out.println("Starting to export Data from Table [ "
 				+ getTableName() + " ] to CSV files");
-		// getRecordCount();
 		populateTableRecordCount();
 		populateTableMetaData();
 		try {
@@ -60,7 +52,8 @@ public class TableExporter implements Runnable {
 			updateExecutionStatus(tableName, recordCount, Status.SUCCESS,
 					new Date());
 		} catch (Exception e) {
-			updateExecutionStatus(tableName, null, Status.FAILURE, new Date());
+            e.printStackTrace();
+            updateExecutionStatus(tableName, null, Status.FAILURE, new Date());
 		}
 		countDownLatch.countDown();
 		System.out.println("Finished exporting Data from Table [ "
@@ -87,8 +80,8 @@ public class TableExporter implements Runnable {
 				new RowMapper<String>() {
 					public String mapRow(ResultSet rs, int rowNum)
 							throws SQLException {
-						columnName.add(rs.getString(1));
-						columnType.add(rs.getString(2));
+						columnName.add(normalize(rs.getString(1)));
+						columnType.add(normalize(rs.getString(2)));
 						return null;
 					}
 				});
@@ -153,12 +146,13 @@ public class TableExporter implements Runnable {
 	 */
 	private void updateExecutionStatus(String tableName, Integer recordCount,
 			Status status, Date date) {
-		final String INSERT_SQL = "INSERT INTO DATA_EXPORT_RESULT (TABLE_NAME,"
+		/*final String INSERT_SQL = "INSERT INTO DATA_EXPORT_RESULT (TABLE_NAME,"
 				+ "ROWS_EXPORTED_COUNT," + "ROWS_EXPORT_STATUS,"
 				+ "ROWS_EXPORTATION_DATE) VALUES (?,?,?,?)";
 		jdbcTemplate.update(INSERT_SQL, tableName, recordCount, status.name(),
-				new java.sql.Date(date.getTime()));
-	}
+				new java.sql.Date(date.getTime()));*/
+        System.out.println(date + ": CSV Export of table \"" + tableName + "\"(" + recordCount + " entries) STATUS = " + status);
+    }
 	
 	/**
 	 * The method fetches a batch of records and parse the records in CSV format
@@ -186,10 +180,9 @@ public class TableExporter implements Runnable {
 						List<String> row = null;
 						while (rs.next()) {
 							row = new ArrayList<String>();
-							for (int columnNo = 1; columnNo <= rs.getMetaData()
-									.getColumnCount(); columnNo++) {
-								row.add(rs.getString(columnNo));
-							}
+							for (int columnNo = 1; columnNo <= rs.getMetaData().getColumnCount(); columnNo++) {
+								row.add(normalize(rs.getString(columnNo)));
+                            }
 							fileContentsToWrite.append(Utils.getCSV(row)
 									.concat("\n"));
 						}
@@ -197,6 +190,15 @@ public class TableExporter implements Runnable {
 					}
 				});
 	}
+
+    /**
+     * Replaces comma with semicolon
+     */
+    private String normalize(String input) {
+        if (input == null) return null;
+
+        return input.replace(',', ';');
+    }
 	
 	/**
 	 * Creates a directory for each table to be exported where the related CSV

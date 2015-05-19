@@ -1,4 +1,4 @@
-package com.springframework.datamigration.importer;
+package datamigration.importer;
 
 public class EntityField {
 
@@ -27,4 +27,8 @@ public class EntityField {
 		return databaseColumnValue;
 	}
 
+    @Override
+    public String toString() {
+        return databaseColumnName + "|" + databaseColumnType + "|" + databaseColumnValue;
+    }
 }

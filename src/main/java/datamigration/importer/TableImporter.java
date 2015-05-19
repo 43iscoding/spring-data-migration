@@ -1,37 +1,16 @@
-package com.springframework.datamigration.importer;
+package datamigration.importer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.*;
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
-import com.springframework.datamigration.utils.Status;
-import com.springframework.datamigration.utils.Utils;
+import datamigration.utils.Status;
+import datamigration.utils.Utils;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * @author Prasanth M P 
- */
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+
 public class TableImporter implements Runnable {
 
 	private int entitiesExportCount;
@@ -40,20 +19,16 @@ public class TableImporter implements Runnable {
 	
 	private String folderName;
 
-	@Value("${hostname}")
 	private String hostname;
 
 	private CountDownLatch importerCountLatch;
 
 	private JdbcTemplate jdbcTemplate;
 
-	@Value("${migrationfolder}")
 	protected String migrationFolder;
 
-	@Value("${password}")
 	private String password;
-	
-	@Value("${port}")
+
 	private int port;	
 
 	protected RemoteApiInstaller remoteApiInstaller;
@@ -62,7 +37,6 @@ public class TableImporter implements Runnable {
 
 	private String tableToExport;
 
-	@Value("${userEmail}")
 	private String userEmail;
 	
 	/**
@@ -78,9 +52,8 @@ public class TableImporter implements Runnable {
 		try {
 			exportToAppEngineDataStore(files);
 			updateExecutionStatus(entityName,entitiesExportCount,Status.SUCCESS,new Date());
-			System.out
-					.println("Completed Creation of App Engine Datastore Entities for table [ "
-							+ tableToExport + " ] from the CSV files");
+			System.out.println("Completed Creation of App Engine Datastore Entities for table [ "
+                    + tableToExport + " ] from the CSV files");
 			importerCountLatch.countDown();			
 		} catch(Exception e){
 			e.printStackTrace();
@@ -99,7 +72,7 @@ public class TableImporter implements Runnable {
 		for (File file : files) {
 			List<String> lines = readFile(file);
 			List<Entity> entities = retrieveEntities(lines);
-			entitiesExportCount = entitiesExportCount+ entities.size();
+			entitiesExportCount += entities.size();
 			saveToDataStore(entities);
 		}
 		createSequence(entityName, Utils.createEntitySequenceName(entityName),
@@ -182,19 +155,26 @@ public class TableImporter implements Runnable {
 	 * @param entityMapList
 	 */
 	public void createEntities(List<Entity> entities,List<EntityUnit> entityMapList) {
-		remoteApiOptions.server(hostname, port)	.credentials(userEmail, password);
+        remoteApiOptions.server(hostname, port).credentials(userEmail, password);
 		try {
 			getRemoteApiInstaller().install(getRemoteApiOptions());
 			for(EntityUnit entityUnit :entityMapList ){
 				Entity entity = new Entity(entityName);
 				List<EntityField> entityFieldList = entityUnit.getEntityFieldsToPersist();
 				for(EntityField field : entityFieldList){
-					entity.setProperty(field.getDatabaseColumnName(), Utils.getMappingType(field.getDatabaseColumnType(), field.getDatabaseColumnValue()));
+                    Object value = Utils.map(field.getDatabaseColumnType(), field.getDatabaseColumnValue());
+                    if (value == Utils.ERROR) {
+                        System.out.println("Error while processing: " + field);
+                    } else {
+                        entity.setProperty(field.getDatabaseColumnName(), value);
+                    }
 				}
 				entities.add(entity);
 			}
 		} catch (Exception exception) {
-		} finally {
+            System.out.println("Exception while creating entities: " + exception);
+            exception.printStackTrace();
+        } finally {
 			getRemoteApiInstaller().uninstall();
 		}
 	}
@@ -216,7 +196,12 @@ public class TableImporter implements Runnable {
 	 */
 	public List<File> getFiles() {
 		File file = new File(this.migrationFolder + "\\" + getFolderName());
-		return Arrays.asList(file.listFiles());
+        System.out.println("Get files from " + file);
+
+        File[] files = file.listFiles();
+        if (files == null) return Collections.emptyList();
+
+        return Arrays.asList(files);
 	}
 
 	private Map<String, String> getMap(String[] header, String[] fields) {

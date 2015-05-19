@@ -8,20 +8,18 @@
 	   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 		
           
-    <import resource="classpath:datasource.xml"/>     
-    <import resource="classpath:exporter.xml"/>    
-    <import resource="classpath:importer.xml"/>    
-     <import resource="classpath:mapping.xml"/> 
+<import resource="datasource.xml"/>
+<import resource="exporter.xml"/>
+<import resource="importer.xml"/>
+<import resource="mapping.xml"/>
 
-   <context:property-placeholder location="classpath:SpringDatabaseMigration.properties" system-properties-mode="OVERRIDE"/> 
-   
-   <bean id="threadPoolPropertiesConfiguration" class="java.util.Properties" >
-	    <constructor-arg>
-	        <props>
-	            <prop key="exportThreadPoolSize">${exportThreadPoolSize}</prop>
-	             <prop key="importThreadPoolSize">${importThreadPoolSize}</prop>
-	        </props>
-	    </constructor-arg>
-	</bean>
+<bean id="threadPoolPropertiesConfiguration" class="java.util.Properties" >
+    <constructor-arg>
+        <props>
+            <prop key="exportThreadPoolSize">5</prop>
+            <prop key="importThreadPoolSize">5</prop>
+        </props>
+    </constructor-arg>
+</bean>
 	
 </beans>

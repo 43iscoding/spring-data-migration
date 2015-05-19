@@ -6,16 +6,19 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-     	<context:component-scan base-package="com.springframework.datamigration.importer"></context:component-scan>
+     	<context:component-scan base-package="datamigration.importer"></context:component-scan>
      
-        <bean id="tableImporter" class="com.springframework.datamigration.importer.TableImporter" scope="prototype">
+        <bean id="tableImporter" class="datamigration.importer.TableImporter" scope="prototype">
             <property name="jdbcTemplate" ref="jdbcTemplate"/>
             <property name="remoteApiInstaller" ref="remoteApiInstaller"/>
             <property name="remoteApiOptions" ref="remoteApiOptions"/>
+            <property name="migrationFolder" value="D:\MigrationTest"/>
+
+            <property name="hostname" value="localhost"/>
+            <property name="port" value="8090"/>
+            <property name="userEmail" value="43istesting@gmail.com"/>
+            <property name="password" value="password"/>
         </bean>
-        
-      
-         
         
 		<bean id="remoteApiInstaller" class="com.google.appengine.tools.remoteapi.RemoteApiInstaller" scope="prototype">
         </bean>

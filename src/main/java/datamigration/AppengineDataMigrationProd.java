@@ -1,15 +1,14 @@
-package com.springframework.datamigration;
+package datamigration;
+
+import datamigration.exporter.DataExporter;
+import datamigration.importer.DataImporter;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import com.springframework.datamigration.exporter.DataExporter;
-import com.springframework.datamigration.importer.DataImporter;
-
-public class SpringPetClinicDataMigration {
+public class AppengineDataMigrationProd {
 
 	public static ApplicationContext ctx;
 
@@ -62,7 +61,7 @@ public class SpringPetClinicDataMigration {
 	}
 
 	public static void loadApplicationContext() {
-		ctx = new ClassPathXmlApplicationContext("SpringDatabaseMigration.xml");
+		ctx = new ClassPathXmlApplicationContext("src/main/resources/SpringDatabaseMigration.xml");
 	}
 
 }

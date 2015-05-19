@@ -7,12 +7,12 @@
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     
-    <context:component-scan base-package="com.springframework.datamigration.exporter"></context:component-scan>
+    <context:component-scan base-package="datamigration.exporter"></context:component-scan>
     
-    <bean id="tableExporter" class="com.springframework.datamigration.exporter.TableExporter" scope="prototype">
+    <bean id="tableExporter" class="datamigration.exporter.TableExporter" scope="prototype">
         <property name="jdbcTemplate" ref="jdbcTemplate"/>
-        <property name="fetchSize" value="${fetchSize}"/>
-        <property name="migrationFolder" value="${migrationfolder}" />
+        <property name="fetchSize" value="500"/>
+        <property name="migrationFolder" value="D:\MigrationTest" />
     </bean>
     
 </beans>
