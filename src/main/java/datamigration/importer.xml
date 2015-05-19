@@ -12,12 +12,12 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
             <property name="jdbcTemplate" ref="jdbcTemplate"/>
             <property name="remoteApiInstaller" ref="remoteApiInstaller"/>
             <property name="remoteApiOptions" ref="remoteApiOptions"/>
-            <property name="migrationFolder" value="D:\MigrationTest"/>
+            <property name="migrationFolder" value="${migrationfolder}"/>
 
-            <property name="hostname" value="localhost"/>
-            <property name="port" value="8090"/>
-            <property name="userEmail" value="43istesting@gmail.com"/>
-            <property name="password" value="password"/>
+            <property name="hostname" value="${hostname}"/>
+            <property name="port" value="${port}"/>
+            <property name="userEmail" value="${userEmail}"/>
+            <property name="password" value="${password}"/>
         </bean>
         
 		<bean id="remoteApiInstaller" class="com.google.appengine.tools.remoteapi.RemoteApiInstaller" scope="prototype">

@@ -95,11 +95,37 @@
 		<artifactId>appengine-remote-api</artifactId>
 		<version>1.9.6</version>
 	</dependency>
-	
-	<!--   -->
-    
     
 </dependencies>
-  
+  <build>
+      <outputDirectory>${project.build.directory}/classes</outputDirectory>
+      <plugins>
+          <plugin>
+              <artifactId>maven-resources-plugin</artifactId>
+              <version>2.6</version>
+              <executions>
+                  <execution>
+                      <id>copy-properties</id>
+                      <phase>process-classes</phase>
+                      <goals>
+                          <goal>copy-resources</goal>
+                      </goals>
+                      <configuration>
+                          <outputDirectory>${project.build.directory}/classes/resources/</outputDirectory>
+                          <encoding>UTF-8</encoding>
+                          <resources>
+                              <resource>
+                                  <directory>${basedir}/src/main/java/resources/</directory>
+                                  <includes>
+                                      <include>*.properties</include>
+                                  </includes>
+                              </resource>
+                          </resources>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+      </plugins>
+  </build>
   
 </project>

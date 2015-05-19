@@ -13,11 +13,15 @@
 <import resource="importer.xml"/>
 <import resource="mapping.xml"/>
 
+<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="location" value="classpath:resources/db.properties"/>
+</bean>
+
 <bean id="threadPoolPropertiesConfiguration" class="java.util.Properties" >
     <constructor-arg>
         <props>
-            <prop key="exportThreadPoolSize">5</prop>
-            <prop key="importThreadPoolSize">5</prop>
+            <prop key="exportThreadPoolSize">${exportThreadPoolSize}</prop>
+            <prop key="importThreadPoolSize">${importThreadPoolSize}</prop>
         </props>
     </constructor-arg>
 </bean>

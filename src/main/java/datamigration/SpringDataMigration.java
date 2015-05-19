@@ -24,13 +24,10 @@ public class SpringDataMigration {
 	 * @param args
 	 */
 	public static void main(String args[]) {
-
 		try {
-
-			loadApplicationContext();
+            loadApplicationContext();
 			init();
-			System.out
-					.println("***********************************************");
+			System.out.println("***********************************************");
 			System.out.println("Starting Data Migration");
 			System.out.println("");
 
