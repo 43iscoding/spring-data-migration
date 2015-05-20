@@ -89,7 +89,8 @@ public class TableExporter implements Runnable {
 		int noCSVFiles = csvFilesPerTable();
 		prepareDirectory();
 		int lowerLimit = 0;
-		for (int i = 0; i < noCSVFiles; i++) {
+        System.out.println("Creating " + noCSVFiles + " CSV files for [ " + tableName + " ]");
+        for (int i = 0; i < noCSVFiles; i++) {
 			File file = new File(this.migrationFolder + "\\" + tableName,
 					tableName + i + ".csv");
 			try {

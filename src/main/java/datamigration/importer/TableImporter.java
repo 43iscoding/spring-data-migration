@@ -56,12 +56,14 @@ public class TableImporter implements Runnable {
 	 * @throws IOException - Throws an IOException if a file is not found
 	 */
 	public void exportToAppEngineDataStore(List<File> files) throws IOException {
-		for (File file : files) {
-			List<String> lines = readFile(file);
+
+		for (int i = 0; i < files.size(); i++) {
+			List<String> lines = readFile(files.get(i));
 			List<Entity> entities = retrieveEntities(lines);
 			entitiesExportCount += entities.size();
+            System.out.println("Processing import for [ " + tableToExport + " ] - " + (i + 1) + "/" + files.size() + " CSV files");
 			saveToDataStore(entities);
-		}
+        }
 		createSequence(entityName, Utils.createEntitySequenceName(entityName),
 				Utils.createEntitySequenceId(entityName));
 	}
