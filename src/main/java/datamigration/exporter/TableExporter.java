@@ -20,6 +20,7 @@ public class TableExporter implements Runnable {
 
     private String migrationFolder;
 	private int fetchSize;
+    private int limit; //We can limit total amount of entries per table for testing purposes
 
 	private JdbcTemplate jdbcTemplate;
     private CountDownLatch countDownLatch;
@@ -94,6 +95,7 @@ public class TableExporter implements Runnable {
 			File file = new File(this.migrationFolder + "\\" + tableName,
 					tableName + i + ".csv");
 			try {
+                System.out.println("Processing export for [ " + tableName + " ] - " + (i + 1) + "/" + noCSVFiles + " CSV files");
 				if (file.createNewFile()) {
                     PrintWriter pw = new PrintWriter(file);
                     String fileContentsToWrite = getFileContentToWrite(lowerLimit);
@@ -119,6 +121,11 @@ public class TableExporter implements Runnable {
 	 */
 	public int csvFilesPerTable() {
 		int noCSVFiles;
+
+        if (limit > 0) {
+            recordCount = Math.min(recordCount, limit);
+        }
+
 		if (recordCount < fetchSize) {
 			noCSVFiles = 1;
 		} else if (recordCount % fetchSize == 0) {
@@ -126,6 +133,7 @@ public class TableExporter implements Runnable {
 		} else {
 			noCSVFiles = recordCount / fetchSize + 1;
 		}
+
 		return noCSVFiles;
 	}
 
@@ -155,8 +163,9 @@ public class TableExporter implements Runnable {
 	 *         to a CSV file.
 	 */
 	public String getFileContentToWrite(int lowerLimit) {
+        int fetch = limit > 0 ? Math.min(limit - lowerLimit, fetchSize) : fetchSize;
 		return jdbcTemplate.query(getQuery(),
-				new Object[] { lowerLimit, fetchSize },
+				new Object[] { lowerLimit, fetch },
 				new ResultSetExtractor<String>() {
 					public String extractData(ResultSet rs)
 							throws SQLException, DataAccessException {
@@ -216,7 +225,11 @@ public class TableExporter implements Runnable {
 		this.fetchSize = fetchSize;
 	}
 
-	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 

@@ -7,9 +7,7 @@
 <bean id="tableToEntityMapping" class="org.springframework.beans.factory.config.MapFactoryBean">
 	<property name="sourceMap">
         <map>
-	        <entry key="city" value="city"/>
-            <entry key="country" value="country"/>
-            <entry key="countrylanguage" value="countrylanguage"/>
+	        <entry key="COMMONACCOUNTDATA" value="Device"/>
         </map>
     </property>
 </bean>

@@ -221,7 +221,7 @@ public class TableImporter implements Runnable {
 			String[] columnNames = lines.get(0).split(",");
 			String[] columnTypes = lines.get(1).split(",");
 			for (int i = 2; i < lines.size(); i++) {
-				String[] columnValuesInRow = lines.get(i).split(",");
+				String[] columnValuesInRow = lines.get(i).split(",", -1);
 				entityMapList.add(getEntityUnitToPersist(columnNames,
 						columnTypes, columnValuesInRow));
 			}

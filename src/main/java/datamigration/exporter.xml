@@ -10,6 +10,7 @@
 <bean id="tableExporter" class="datamigration.exporter.TableExporter" scope="prototype">
     <property name="jdbcTemplate" ref="jdbcTemplate"/>
     <property name="fetchSize" value="${migration.fetchSize}"/>
+    <property name="limit" value="${migration.limit}"/>
     <property name="migrationFolder" value="${migration.cvsOutputFolder}" />
 </bean>
     

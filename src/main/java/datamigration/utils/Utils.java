@@ -1,6 +1,12 @@
 package datamigration.utils;
 
+import com.google.appengine.api.datastore.Text;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -89,9 +95,21 @@ public class Utils {
         Type type = Type.fromDatabaseType(databaseType);
         try {
             switch (type) {
+                case DATE: {
+                    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    Date parsedDate = null;
+                    try {
+                        parsedDate = df.parse(value);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    return parsedDate;
+                }
                 case FLOAT: return nullOrEmpty(value) ? null : Float.valueOf(value);
+                case LONG: return nullOrEmpty(value) ? null : Long.valueOf(value);
                 case INTEGER: return nullOrEmpty(value) ? null : Integer.valueOf(value);
                 case ENUM: return value;
+                case TEXT: return new Text(value);
                 case STRING: return value;
                 default: //Unknown
                     System.out.println("Unknown type " + databaseType + " -> Fallback to string");
