@@ -101,7 +101,9 @@ public class Utils {
                     try {
                         parsedDate = df.parse(value);
                     } catch (ParseException e) {
-                        e.printStackTrace();
+                        if (!nullOrEmpty(value)) {
+                            System.out.println("Could not parse date: " + e.getMessage());
+                        }
                     }
                     return parsedDate;
                 }

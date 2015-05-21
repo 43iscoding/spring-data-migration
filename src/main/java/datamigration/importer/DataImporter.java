@@ -16,11 +16,8 @@ public class DataImporter implements Runnable {
 	 */
 	public void run() {
 
-		Properties configurationProperties = (Properties) context
-				.getBean("threadPoolPropertiesConfiguration");
-		ExecutorService executorService = Executors.newFixedThreadPool(Integer
-				.valueOf(configurationProperties
-						.getProperty("importThreadPoolSize")));
+		Properties configurationProperties = (Properties) context.getBean("config");
+		ExecutorService executorService = Executors.newFixedThreadPool(Integer.valueOf(configurationProperties.getProperty("importThreadPoolSize")));
 
         //TODO: Fix this bad mapping
 		Map<String, String> tableToEntityMap = (Map<String, String>) context.getBean("tableToEntityMapping");

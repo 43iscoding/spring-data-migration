@@ -20,7 +20,7 @@ public class DataExporter implements Runnable {
 	 *  The worker threads exports tables to CSV files
 	 */
 	public void run() {
-		Properties configurationProperties = (Properties) context.getBean("threadPoolPropertiesConfiguration");
+		Properties configurationProperties = (Properties) context.getBean("config");
 		ExecutorService executorService = Executors.newFixedThreadPool( Integer.valueOf(configurationProperties.getProperty("exportThreadPoolSize")));
 		List<String> databaseTables = getDatabaseTableNames();
         System.out.println("Found " + databaseTables.size() + " tables");
