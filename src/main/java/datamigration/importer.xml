@@ -10,7 +10,7 @@
 <bean id="tableImporter" class="datamigration.importer.TableImporter" scope="prototype">
     <property name="remoteApiInstaller" ref="remoteApiInstaller"/>
     <property name="remoteApiOptions" ref="remoteApiOptions"/>
-    <property name="migrationFolder" value="${migration.cvsOutputFolder}"/>
+    <property name="migrationFolder" value="${migration.import.folder}"/>
 
     <property name="hostname" value="${gae.hostname}"/>
     <property name="port" value="${gae.port}"/>

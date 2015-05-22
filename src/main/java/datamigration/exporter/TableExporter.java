@@ -36,7 +36,6 @@ public class TableExporter implements Runnable {
 	 * database.
 	 */
 	public void run() {
-
 		System.out.println("Export started from Table [ " + tableName + " ]");
         long startTime = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
 		populateTableRecordCount();

@@ -19,41 +19,25 @@ public class Migration {
             loadApplicationContext();
 			System.out.println("***********************************************");
 			System.out.println("Starting Data Migration");
-            System.out.println();
 
             Properties configurationProperties = (Properties) ctx.getBean("config");
 
             long timeStart = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
 
             if (!Boolean.valueOf(configurationProperties.getProperty("skipExport"))) {
-                CountDownLatch latch1 = new CountDownLatch(1);
-                DataExporter dataExporterThread = new DataExporter();
-                dataExporterThread.setContext(ctx);
-                dataExporterThread.setCountDownLatch(latch1);
-                Thread t1 = new Thread(dataExporterThread);
-                t1.start();
-
-                latch1.await();
-
-                System.out.println();
-                System.out.println("Export finished, proceed to import");
-                System.out.println();
+                processExport();
             } else {
-                System.out.println("Skipping export, proceed to import");
-                System.out.println();
+                System.out.println("WARNING : SKIPPING EXPORT");
             }
 
-            CountDownLatch latch2 = new CountDownLatch(1);
-			DataImporter dataImporterThread = new DataImporter();
-			dataImporterThread.setContext(ctx);
-			dataImporterThread.setCountDownLatch(latch2);
-			Thread t2 = new Thread(dataImporterThread);
-			t2.start();
-			latch2.await();
+            if (!Boolean.valueOf(configurationProperties.getProperty("skipImport"))) {
+                processImport();
+            } else {
+                System.out.println("WARNING : SKIPPING IMPORT");
+            }
 
 			long timeFinish = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
 
-			System.out.println();
 			System.out.println("Completed Data Migration in " + (timeFinish - timeStart) + "ms");
 			System.out.println("***********************************************");
 
@@ -63,6 +47,30 @@ public class Migration {
 			e.printStackTrace();
 		}
 	}
+
+    private static void processExport() throws InterruptedException {
+        CountDownLatch latch1 = new CountDownLatch(1);
+        DataExporter dataExporterThread = new DataExporter();
+        dataExporterThread.setContext(ctx);
+        dataExporterThread.setCountDownLatch(latch1);
+        Thread t1 = new Thread(dataExporterThread);
+        t1.start();
+        latch1.await();
+
+        System.out.println("Export finished!");
+    }
+
+    private static void processImport() throws InterruptedException {
+        CountDownLatch latch2 = new CountDownLatch(1);
+        DataImporter dataImporterThread = new DataImporter();
+        dataImporterThread.setContext(ctx);
+        dataImporterThread.setCountDownLatch(latch2);
+        Thread t2 = new Thread(dataImporterThread);
+        t2.start();
+        latch2.await();
+
+        System.out.println("Import finished!");
+    }
 
 	public static void loadApplicationContext() {
         ctx = new FileSystemXmlApplicationContext("src/main/java/datamigration/context.xml");

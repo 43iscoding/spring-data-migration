@@ -15,9 +15,10 @@
 <bean id="config" class="java.util.Properties">
     <constructor-arg>
         <props>
-            <prop key="exportThreadPoolSize">${migration.exportThreadPoolSize}</prop>
-            <prop key="importThreadPoolSize">${migration.importThreadPoolSize}</prop>
-            <prop key="skipExport">${migration.skipExport}</prop>
+            <prop key="exportThreadPoolSize">${migration.export.threadPoolSize}</prop>
+            <prop key="importThreadPoolSize">${migration.import.threadPoolSize}</prop>
+            <prop key="skipExport">${migration.skipExport:false}</prop>
+            <prop key="skipImport">${migration.skipImport:false}</prop>
         </props>
     </constructor-arg>
 </bean>

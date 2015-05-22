@@ -23,6 +23,8 @@ public class TableImporter implements Runnable {
 
 	private String entityName;
 	private String folderName;
+    private List<String> fieldsToIgnore;
+
 	private String hostname;
     private int port;
 
@@ -168,8 +170,9 @@ public class TableImporter implements Runnable {
 			String[] columnTypes, String[] columnValuesInRow) {
 		EntityUnit entityUnit = new EntityUnit();
 		for (int i = 0; i < columnNames.length; i++) {
-			entityUnit.addFieldToPersist(new EntityField(columnNames[i],
-					columnTypes[i], columnValuesInRow[i]));
+            if (fieldsToIgnore.contains(columnNames[i])) continue;
+
+            entityUnit.addFieldToPersist(new EntityField(columnNames[i], columnTypes[i], columnValuesInRow[i]));
 		}
 		return entityUnit;
 	}
@@ -246,7 +249,11 @@ public class TableImporter implements Runnable {
 		this.importerCountLatch = importerCountLatch;
 	}
 
-	public void setMigrationFolder(String migrationFolder) {
+    public void setFieldsToIgnore(List<String> fieldsToIgnore) {
+        this.fieldsToIgnore = fieldsToIgnore;
+    }
+
+    public void setMigrationFolder(String migrationFolder) {
 		this.migrationFolder = migrationFolder;
 	}
 

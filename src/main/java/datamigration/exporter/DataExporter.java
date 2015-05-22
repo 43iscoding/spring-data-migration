@@ -1,5 +1,6 @@
 package datamigration.exporter;
 
+import datamigration.utils.MapperConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,7 +24,6 @@ public class DataExporter implements Runnable {
 		Properties configurationProperties = (Properties) context.getBean("config");
 		ExecutorService executorService = Executors.newFixedThreadPool( Integer.valueOf(configurationProperties.getProperty("exportThreadPoolSize")));
 		List<String> databaseTables = getDatabaseTableNames();
-        System.out.println("Found " + databaseTables.size() + " tables");
         CountDownLatch exporterCountLatch = new CountDownLatch(
 				databaseTables.size());
 		Collection<Future<?>> futures = new LinkedList<Future<?>>();
@@ -54,19 +54,25 @@ public class DataExporter implements Runnable {
 	 */
 	private List<String> getDatabaseTableNames() {
 		final List<String> tablenames = new ArrayList<String>();
+        final MapperConfig config = (MapperConfig) context.getBean("mapping");
 		JdbcTemplate jdbcTemplate = (JdbcTemplate) context.getBean("jdbcTemplate");
 		String showTables = "SHOW TABLES";
-		jdbcTemplate.query(showTables, new ResultSetExtractor<List<String>>() {
+        System.out.println("Processing tables: ");
+        jdbcTemplate.query(showTables, new ResultSetExtractor<List<String>>() {
 			public List<String> extractData(ResultSet rs) throws SQLException,
 					DataAccessException {
 				while (rs.next()) {
-					tablenames.add(rs.getString(1));
+                    String tableName = rs.getString(1);
+                    if (config.shouldProcess(tableName)) {
+                        System.out.println("* " + tableName.toUpperCase());
+                        tablenames.add(tableName);
+                    }
 				}
 				return tablenames;
 			}
 		});
-
-		return tablenames;
+        System.out.println("Total (" + tablenames.size() + ")");
+        return tablenames;
 	}
 
 	public void setContext(ApplicationContext context) {

@@ -4,11 +4,36 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-<bean id="tableToEntityMapping" class="org.springframework.beans.factory.config.MapFactoryBean">
-	<property name="sourceMap">
-        <map>
-	        <entry key="COMMONACCOUNTDATA" value="Device"/>
-        </map>
+<bean id="mapping" class="datamigration.utils.MapperConfig">
+    <property name="mappers">
+        <list>
+            <ref bean="accountMapper"/>
+        </list>
+    </property>
+</bean>
+
+<bean id="accountMapper" class="datamigration.utils.Mapper">
+    <property name="tableName" value="COMMONACCOUNTDATA"/>
+    <property name="entityName" value="Device"/>
+    <property name="fieldsToIgnore">
+        <list>
+            <value>epaEmail</value>
+            <value>epaPassword</value>
+            <value>inventory</value>
+            <value>age</value>
+            <value>leagueid</value>
+            <value>ingamepaymentsystem</value>
+            <value>statlevel</value>
+            <value>rating</value>
+            <value>bonusRubies</value>
+            <value>referralData</value>
+            <value>storedeviceforever</value>
+            <value>tmpData</value>
+            <value>tmpPartner</value>
+            <value>divisionId</value>
+            <value>premiumfromId</value>
+            <value>connectedwithId</value>
+        </list>
     </property>
 </bean>
 
