@@ -19,6 +19,7 @@
             <prop key="importThreadPoolSize">${migration.import.threadPoolSize}</prop>
             <prop key="skipExport">${migration.skipExport:false}</prop>
             <prop key="skipImport">${migration.skipImport:false}</prop>
+            <prop key="debug">${debug}</prop>
         </props>
     </constructor-arg>
 </bean>

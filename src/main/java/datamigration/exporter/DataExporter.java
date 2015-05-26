@@ -1,19 +1,21 @@
 package datamigration.exporter;
 
+import datamigration.Migration;
 import datamigration.utils.MapperConfig;
-import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class DataExporter implements Runnable {
 
-	private ApplicationContext context;
 	private CountDownLatch countDownLatch;
 	
 	/**
@@ -21,14 +23,13 @@ public class DataExporter implements Runnable {
 	 *  The worker threads exports tables to CSV files
 	 */
 	public void run() {
-		Properties configurationProperties = (Properties) context.getBean("config");
-		ExecutorService executorService = Executors.newFixedThreadPool( Integer.valueOf(configurationProperties.getProperty("exportThreadPoolSize")));
+		ExecutorService executorService = Executors.newFixedThreadPool(Migration.getIntProperty("exportThreadPoolSize"));
 		List<String> databaseTables = getDatabaseTableNames();
         CountDownLatch exporterCountLatch = new CountDownLatch(
 				databaseTables.size());
 		Collection<Future<?>> futures = new LinkedList<Future<?>>();
 		for (String tableName : databaseTables) {
-			TableExporter tableExporterBean = (TableExporter) context.getBean("tableExporter");
+			TableExporter tableExporterBean = (TableExporter) Migration.getBean("tableExporter");
 			tableExporterBean.setTableName(tableName.toUpperCase());
 			tableExporterBean.setCountDownLatch(exporterCountLatch);
 			futures.add(executorService.submit(tableExporterBean));
@@ -54,8 +55,8 @@ public class DataExporter implements Runnable {
 	 */
 	private List<String> getDatabaseTableNames() {
 		final List<String> tablenames = new ArrayList<String>();
-        final MapperConfig config = (MapperConfig) context.getBean("mapping");
-		JdbcTemplate jdbcTemplate = (JdbcTemplate) context.getBean("jdbcTemplate");
+        final MapperConfig config = Migration.getBean(MapperConfig.class);
+		JdbcTemplate jdbcTemplate = Migration.getBean(JdbcTemplate.class);
 		String showTables = "SHOW TABLES";
         System.out.println("Processing tables: ");
         jdbcTemplate.query(showTables, new ResultSetExtractor<List<String>>() {
@@ -73,10 +74,6 @@ public class DataExporter implements Runnable {
 		});
         System.out.println("Total (" + tablenames.size() + ")");
         return tablenames;
-	}
-
-	public void setContext(ApplicationContext context) {
-		this.context = context;
 	}
 
 	public void setCountDownLatch(CountDownLatch countDownLatch) {

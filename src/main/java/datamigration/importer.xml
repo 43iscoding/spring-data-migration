@@ -12,6 +12,7 @@
     <property name="remoteApiOptions" ref="remoteApiOptions"/>
     <property name="migrationFolder" value="${migration.import.folder}"/>
     <property name="importDelay" value="${migration.import.delay:0}"/>
+    <property name="compensatingDelay" value="${migration.import.compensatingDelay:false}"/>
 
     <property name="hostname" value="${gae.hostname}"/>
     <property name="port" value="${gae.port}"/>

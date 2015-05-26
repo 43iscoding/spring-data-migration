@@ -1,17 +1,15 @@
 package datamigration.importer;
 
+import datamigration.Migration;
 import datamigration.utils.Mapper;
 import datamigration.utils.MapperConfig;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Properties;
 import java.util.concurrent.*;
 
 public class DataImporter implements Runnable {
 
-	private ApplicationContext context;
 	private CountDownLatch countDownLatch;
 
 	/**
@@ -19,17 +17,15 @@ public class DataImporter implements Runnable {
 	 * worker threads executes the tasks which import CSV files to GAE Entities.
 	 */
 	public void run() {
+		ExecutorService executorService = Executors.newFixedThreadPool(Migration.getIntProperty("importThreadPoolSize"));
 
-		Properties configurationProperties = (Properties) context.getBean("config");
-		ExecutorService executorService = Executors.newFixedThreadPool(Integer.valueOf(configurationProperties.getProperty("importThreadPoolSize")));
-
-        MapperConfig config = (MapperConfig) context.getBean("mapping");
+        MapperConfig config = Migration.getBean(MapperConfig.class);
         CountDownLatch importerCountLatch = config.getCountDownLatch();
 
         Collection<Future<?>> futures = new LinkedList<Future<?>>();
 
         for (Mapper mapper : config.getMappers()) {
-            TableImporter tableImporter = context.getBean(TableImporter.class);
+            TableImporter tableImporter = Migration.getBean(TableImporter.class);
             tableImporter.setImporterCountLatch(importerCountLatch);
             tableImporter.setTableToExport(mapper.getTableName());
             tableImporter.setEntityName(mapper.getEntityName());
@@ -50,10 +46,6 @@ public class DataImporter implements Runnable {
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public void setContext(ApplicationContext context) {
-		this.context = context;
 	}
 
 	public void setCountDownLatch(CountDownLatch countDownLatch) {

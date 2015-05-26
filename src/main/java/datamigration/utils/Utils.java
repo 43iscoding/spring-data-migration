@@ -5,10 +5,7 @@ import com.google.appengine.api.datastore.Text;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Utils {
 
@@ -124,5 +121,9 @@ public class Utils {
 
     private static boolean nullOrEmpty(String value) {
         return value == null || value.isEmpty();
+    }
+
+    public static long getTime() {
+        return Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
     }
 }

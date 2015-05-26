@@ -3,6 +3,7 @@ package datamigration.importer;
 import com.google.appengine.api.datastore.*;
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
+import datamigration.Migration;
 import datamigration.utils.Status;
 import datamigration.utils.Utils;
 
@@ -33,6 +34,7 @@ public class TableImporter implements Runnable {
     private String password;
 
     private int importDelay;
+    private boolean compensatingDelay;
 
 	/**
 	 * The run() method contains the workflow logic for exporting the CSV files into
@@ -41,15 +43,15 @@ public class TableImporter implements Runnable {
 	 */
 	public void run() {
 		System.out.println("Import started for Entity [ " + tableToExport + " ]");
-        long startTime = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
+        long startTime = Utils.getTime();
 		List<File> files = getFiles();
 		try {
 			exportToAppEngineDataStore(files);
-			updateExecutionStatus(entityName, entitiesExportCount,Status.SUCCESS, startTime);
+			updateExecutionStatus(entityName, entitiesExportCount, Status.SUCCESS, startTime);
 			importerCountLatch.countDown();			
 		} catch(Exception e){
 			e.printStackTrace();
-			updateExecutionStatus(entityName, entitiesExportCount,Status.FAILURE, startTime);
+			updateExecutionStatus(entityName, entitiesExportCount, Status.FAILURE, startTime);
 		} 
 	}
 	
@@ -67,9 +69,15 @@ public class TableImporter implements Runnable {
                 List<Entity> entities = retrieveEntities(lines);
                 entitiesExportCount += entities.size();
                 System.out.println("Processing import for [ " + tableToExport + " ] - " + (i + 1) + "/" + files.size() + " CSV files");
+                long startTime = Utils.getTime();
                 saveToDataStore(entities);
-                if (importDelay > 0) {
-                    TimeUnit.MILLISECONDS.sleep(importDelay);
+                long delay = getDelay(startTime);
+                if (Migration.debug()) {
+                    System.out.println("Processed in " + (Utils.getTime() - startTime) + "ms | Delay : " + delay + "ms");
+                }
+
+                if (delay > 0) {
+                    TimeUnit.MILLISECONDS.sleep(delay);
                 }
             }
             createSequence(entityName, Utils.createEntitySequenceName(entityName), Utils.createEntitySequenceId(entityName));
@@ -77,6 +85,10 @@ public class TableImporter implements Runnable {
             System.out.println("Error when importing to GAE: " + e.getMessage());
         }
 	}
+
+    private long getDelay(long time) {
+        return compensatingDelay ? importDelay + Utils.getTime() - time : importDelay;
+    }
 	
 	/**
 	 * The method  update the status of the import of the table records in the GAE Datastore.
@@ -88,9 +100,8 @@ public class TableImporter implements Runnable {
 	 */	
 	private void updateExecutionStatus(final String entityName,
 			final Integer count, final Status status, final long time) {
-        long timeFinish = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
         System.out.println("Import finished for [ " + entityName +
-                " ] (" + count + " entries). STATUS = " + status + " (" + (timeFinish - time) + "ms)");
+                " ] (" + count + " entries). STATUS = " + status + " (" + (Utils.getTime() - time) + "ms)");
 	}
 	
 	/**
@@ -291,5 +302,9 @@ public class TableImporter implements Runnable {
 
     public void setImportDelay(int importDelay) {
         this.importDelay = importDelay;
+    }
+
+    public void setCompensatingDelay(boolean compensatingDelay) {
+        this.compensatingDelay = compensatingDelay;
     }
 }

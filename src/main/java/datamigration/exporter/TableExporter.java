@@ -37,7 +37,7 @@ public class TableExporter implements Runnable {
 	 */
 	public void run() {
 		System.out.println("Export started from Table [ " + tableName + " ]");
-        long startTime = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
+        long startTime = Utils.getTime();
 		populateTableRecordCount();
 		populateTableMetaData();
 		try {
@@ -146,9 +146,8 @@ public class TableExporter implements Runnable {
 	 */
 	private void updateExecutionStatus(final String tableName, final Integer count,
 			final Status status, final long time) {
-        long timeFinish = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();
         System.out.println("Import finished for [ " + tableName +
-                " ] (" + count + " entries). STATUS = " + status + " (" + (timeFinish - time) + "ms)");
+                " ] (" + count + " entries). STATUS = " + status + " (" + (Utils.getTime() - time) + "ms)");
     }
 	
 	/**
