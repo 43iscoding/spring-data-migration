@@ -85,10 +85,6 @@ public class Migration {
         return Integer.valueOf(getProperty(name));
     }
 
-    public static Object getBean(String name) {
-        return ctx.getBean(name);
-    }
-
     public static <T> T getBean(Class<T> clazz) {
         return ctx.getBean(clazz);
     }

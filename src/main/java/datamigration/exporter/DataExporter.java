@@ -29,7 +29,7 @@ public class DataExporter implements Runnable {
 				databaseTables.size());
 		Collection<Future<?>> futures = new LinkedList<Future<?>>();
 		for (String tableName : databaseTables) {
-			TableExporter tableExporterBean = (TableExporter) Migration.getBean("tableExporter");
+			TableExporter tableExporterBean = Migration.getBean(TableExporter.class);
 			tableExporterBean.setTableName(tableName.toUpperCase());
 			tableExporterBean.setCountDownLatch(exporterCountLatch);
 			futures.add(executorService.submit(tableExporterBean));

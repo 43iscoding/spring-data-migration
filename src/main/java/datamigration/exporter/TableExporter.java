@@ -63,10 +63,9 @@ public class TableExporter implements Runnable {
 	 * The meta data involves the colum names and column types.
 	 */
 	private void populateTableMetaData() {
-		String jdbcTableMetaDataQuery = getTableMetaDataQuery();
 		final List<String> columnName = new ArrayList<String>();
 		final List<String> columnType = new ArrayList<String>();
-        jdbcTemplate.query(jdbcTableMetaDataQuery,
+        jdbcTemplate.query(getTableMetaDataQuery(),
                 new RowMapper<String>() {
                     public String mapRow(ResultSet rs, int rowNum)
                             throws SQLException {
