@@ -9,6 +9,7 @@ import datamigration.utils.Utils;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class TableImporter implements Runnable {
 
@@ -30,6 +31,8 @@ public class TableImporter implements Runnable {
 
     private String userEmail;
     private String password;
+
+    private int importDelay;
 
 	/**
 	 * The run() method contains the workflow logic for exporting the CSV files into
@@ -58,16 +61,21 @@ public class TableImporter implements Runnable {
 	 * @throws IOException - Throws an IOException if a file is not found
 	 */
 	public void exportToAppEngineDataStore(List<File> files) throws IOException {
-
-		for (int i = 0; i < files.size(); i++) {
-			List<String> lines = readFile(files.get(i));
-			List<Entity> entities = retrieveEntities(lines);
-			entitiesExportCount += entities.size();
-            System.out.println("Processing import for [ " + tableToExport + " ] - " + (i + 1) + "/" + files.size() + " CSV files");
-			saveToDataStore(entities);
+        try {
+            for (int i = 0; i < files.size(); i++) {
+                List<String> lines = readFile(files.get(i));
+                List<Entity> entities = retrieveEntities(lines);
+                entitiesExportCount += entities.size();
+                System.out.println("Processing import for [ " + tableToExport + " ] - " + (i + 1) + "/" + files.size() + " CSV files");
+                saveToDataStore(entities);
+                if (importDelay > 0) {
+                    TimeUnit.MILLISECONDS.sleep(importDelay);
+                }
+            }
+            createSequence(entityName, Utils.createEntitySequenceName(entityName), Utils.createEntitySequenceId(entityName));
+        } catch (InterruptedException e) {
+            System.out.println("Error when importing to GAE: " + e.getMessage());
         }
-		createSequence(entityName, Utils.createEntitySequenceName(entityName),
-				Utils.createEntitySequenceId(entityName));
 	}
 	
 	/**
@@ -280,4 +288,8 @@ public class TableImporter implements Runnable {
 	public void setUserEmail(String userEmail) {
 		this.userEmail = userEmail;
 	}
+
+    public void setImportDelay(int importDelay) {
+        this.importDelay = importDelay;
+    }
 }
