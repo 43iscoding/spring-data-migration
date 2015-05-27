@@ -2,6 +2,7 @@ package datamigration;
 
 import datamigration.exporter.DataExporter;
 import datamigration.importer.DataImporter;
+import datamigration.utils.Stats;
 import datamigration.utils.Utils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -38,6 +39,8 @@ public class Migration {
 
 			System.out.println("Completed Data Migration in " + (timeFinish - timeStart) + "ms");
 			System.out.println("***********************************************");
+
+            Stats.printStats();
 
 		} catch (InterruptedException e) {
 			e.printStackTrace();

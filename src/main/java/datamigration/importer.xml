@@ -13,6 +13,8 @@
     <property name="migrationFolder" value="${migration.import.folder}"/>
     <property name="importDelay" value="${migration.import.delay:0}"/>
     <property name="compensatingDelay" value="${migration.import.compensatingDelay:false}"/>
+    <property name="breakDuration" value="${migration.import.break.duration:60}"/>
+    <property name="breakFrequency" value="${migration.import.break.frequency:0}"/>
 
     <property name="hostname" value="${gae.hostname}"/>
     <property name="port" value="${gae.port}"/>

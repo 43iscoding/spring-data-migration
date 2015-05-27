@@ -4,6 +4,7 @@ import com.google.appengine.api.datastore.*;
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
 import datamigration.Migration;
+import datamigration.utils.Stats;
 import datamigration.utils.Status;
 import datamigration.utils.Utils;
 
@@ -35,6 +36,8 @@ public class TableImporter implements Runnable {
 
     private int importDelay;
     private boolean compensatingDelay;
+    private int breakFrequency; //how often (each N CSV files) to have a break
+    private int breakDuration; //in seconds
 
 	/**
 	 * The run() method contains the workflow logic for exporting the CSV files into
@@ -72,19 +75,33 @@ public class TableImporter implements Runnable {
                 long startTime = Utils.getTime();
                 saveToDataStore(entities);
                 long delay = getDelay(startTime);
-                if (Migration.debug()) {
-                    System.out.println("Processed in " + (Utils.getTime() - startTime) + "ms | Delay : " + delay + "ms");
-                }
+
+                Stats.reportImport(tableToExport, startTime, delay);
 
                 if (delay > 0) {
                     TimeUnit.MILLISECONDS.sleep(delay);
                 }
+
+                breakIfRequired(i);
             }
             createSequence(entityName, Utils.createEntitySequenceName(entityName), Utils.createEntitySequenceId(entityName));
         } catch (InterruptedException e) {
             System.out.println("Error when importing to GAE: " + e.getMessage());
         }
 	}
+
+    private void breakIfRequired(int index) throws InterruptedException {
+        if (breakDuration == 0) return;
+
+        if (breakFrequency == 0) return;
+
+        if ((index + 1) % breakFrequency != 0) return;
+
+        if (Migration.debug()) {
+            System.out.println("Having break for " + breakDuration + " seconds");
+        }
+        TimeUnit.SECONDS.sleep(breakDuration);
+    }
 
     private long getDelay(long time) {
         return compensatingDelay ? importDelay + Utils.getTime() - time : importDelay;
@@ -306,5 +323,13 @@ public class TableImporter implements Runnable {
 
     public void setCompensatingDelay(boolean compensatingDelay) {
         this.compensatingDelay = compensatingDelay;
+    }
+
+    public void setBreakFrequency(int breakFrequency) {
+        this.breakFrequency = breakFrequency;
+    }
+
+    public void setBreakDuration(int breakDuration) {
+        this.breakDuration = breakDuration;
     }
 }
